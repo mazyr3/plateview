@@ -3,10 +3,30 @@ const params=new URLSearchParams(location.search);
 let restaurant=null, items=[], lang='en', activeCategory='All', activeDish=null;
 
 const ui={
-  en:{eyebrow:'THE MENU, BROUGHT TO YOUR TABLE',hero1:'See your dish',hero2:'before it arrives.',explore:'Explore menu',tryar:'Try AR',rotate:'Drag to rotate',heroTrust:'3D preview · real-size AR on supported phones',discover:'DISCOVER',ourmenu:'Our menu',intro:'Tap any dish to inspect it in 3D, then place it on your table in augmented reality.',step1h:'Choose a dish',step1p:'Browse the visual menu and allergen information.',step2h:'Explore in 3D',step2p:'Rotate, zoom and inspect the plate from every angle.',step3h:'Place it in AR',step3p:'Use your phone camera to preview it on your table.',all:'All',unavailable:'Unavailable',allergens:'Allergens',viewTable:'View on your table',openCamera:'Open camera AR',viewerHint:'Drag to rotate · pinch to zoom',arStep1:'Point at your table',arStep2:'Move slowly to detect it',arStep3:'Tap to place the dish',table:'Table',view3d:'View in 3D'},
-  nl:{eyebrow:'HET MENU, OP JOUW TAFEL',hero1:'Bekijk je gerecht',hero2:'voor het arriveert.',explore:'Bekijk menu',tryar:'Probeer AR',rotate:'Sleep om te draaien',heroTrust:'3D-preview · AR op ware grootte op ondersteunde telefoons',discover:'ONTDEK',ourmenu:'Ons menu',intro:'Tik op een gerecht om het in 3D te bekijken en plaats het daarna in AR op je tafel.',step1h:'Kies een gerecht',step1p:'Bekijk het visuele menu en allergenen.',step2h:'Bekijk in 3D',step2p:'Draai, zoom en bekijk het bord vanuit elke hoek.',step3h:'Plaats in AR',step3p:'Gebruik je camera om het gerecht op tafel te bekijken.',all:'Alles',unavailable:'Niet beschikbaar',allergens:'Allergenen',viewTable:'Bekijk op je tafel',openCamera:'Open camera AR',viewerHint:'Sleep om te draaien · knijp om te zoomen',arStep1:'Richt op je tafel',arStep2:'Beweeg langzaam om te detecteren',arStep3:'Tik om het gerecht te plaatsen',table:'Tafel',view3d:'Bekijk in 3D'},
-  fr:{eyebrow:'LE MENU, DIRECTEMENT À TABLE',hero1:'Voyez votre plat',hero2:'avant son arrivée.',explore:'Voir le menu',tryar:'Essayer la RA',rotate:'Glissez pour tourner',heroTrust:'Aperçu 3D · RA à taille réelle sur téléphones compatibles',discover:'DÉCOUVRIR',ourmenu:'Notre menu',intro:'Touchez un plat pour l’examiner en 3D puis placez-le sur votre table en réalité augmentée.',step1h:'Choisissez un plat',step1p:'Parcourez le menu visuel et les allergènes.',step2h:'Explorez en 3D',step2p:'Tournez, zoomez et inspectez l’assiette sous tous les angles.',step3h:'Placez-le en RA',step3p:'Utilisez votre caméra pour le prévisualiser sur votre table.',all:'Tous',unavailable:'Indisponible',allergens:'Allergènes',viewTable:'Voir sur votre table',openCamera:'Ouvrir la caméra RA',viewerHint:'Glissez pour tourner · pincez pour zoomer',arStep1:'Visez votre table',arStep2:'Bougez lentement pour la détecter',arStep3:'Touchez pour placer le plat',table:'Table',view3d:'Voir en 3D'}
+  en:{eyebrow:'THE MENU, BROUGHT TO YOUR TABLE',hero1:'See your dish',hero2:'before it arrives.',explore:'Explore menu',tryar:'Try AR',rotate:'Drag to rotate',heroTrust:'3D preview · real-size AR on supported phones',discover:'DISCOVER',ourmenu:'Our menu',intro:'Tap any dish to inspect it in 3D, then place it on your table in augmented reality.',step1h:'Choose a dish',step1p:'Browse the visual menu and allergen information.',step2h:'Explore in 3D',step2p:'Rotate, zoom and inspect the plate from every angle.',step3h:'Place it in AR',step3p:'Use your phone camera to preview it on your table.',all:'All',unavailable:'Unavailable',allergens:'Allergens',viewTable:'View on your table',openCamera:'Open camera AR',viewerHint:'Drag to rotate · pinch to zoom',tap3d:'Tap to explore in 3D',scrollHint:'Scroll normally until activated',active3d:'3D active',arStep1:'Point at your table',arStep2:'Move slowly to detect it',arStep3:'Tap to place the dish',table:'Table',view3d:'View in 3D'},
+  nl:{eyebrow:'HET MENU, OP JOUW TAFEL',hero1:'Bekijk je gerecht',hero2:'voor het arriveert.',explore:'Bekijk menu',tryar:'Probeer AR',rotate:'Sleep om te draaien',heroTrust:'3D-preview · AR op ware grootte op ondersteunde telefoons',discover:'ONTDEK',ourmenu:'Ons menu',intro:'Tik op een gerecht om het in 3D te bekijken en plaats het daarna in AR op je tafel.',step1h:'Kies een gerecht',step1p:'Bekijk het visuele menu en allergenen.',step2h:'Bekijk in 3D',step2p:'Draai, zoom en bekijk het bord vanuit elke hoek.',step3h:'Plaats in AR',step3p:'Gebruik je camera om het gerecht op tafel te bekijken.',all:'Alles',unavailable:'Niet beschikbaar',allergens:'Allergenen',viewTable:'Bekijk op je tafel',openCamera:'Open camera AR',viewerHint:'Sleep om te draaien · knijp om te zoomen',tap3d:'Tik om 3D te bedienen',scrollHint:'Scroll normaal totdat 3D actief is',active3d:'3D actief',arStep1:'Richt op je tafel',arStep2:'Beweeg langzaam om te detecteren',arStep3:'Tik om het gerecht te plaatsen',table:'Tafel',view3d:'Bekijk in 3D'},
+  fr:{eyebrow:'LE MENU, DIRECTEMENT À TABLE',hero1:'Voyez votre plat',hero2:'avant son arrivée.',explore:'Voir le menu',tryar:'Essayer la RA',rotate:'Glissez pour tourner',heroTrust:'Aperçu 3D · RA à taille réelle sur téléphones compatibles',discover:'DÉCOUVRIR',ourmenu:'Notre menu',intro:'Touchez un plat pour l’examiner en 3D puis placez-le sur votre table en réalité augmentée.',step1h:'Choisissez un plat',step1p:'Parcourez le menu visuel et les allergènes.',step2h:'Explorez en 3D',step2p:'Tournez, zoomez et inspectez l’assiette sous tous les angles.',step3h:'Placez-le en RA',step3p:'Utilisez votre caméra pour le prévisualiser sur votre table.',all:'Tous',unavailable:'Indisponible',allergens:'Allergènes',viewTable:'Voir sur votre table',openCamera:'Ouvrir la caméra RA',viewerHint:'Glissez pour tourner · pincez pour zoomer',tap3d:'Touchez pour explorer en 3D',scrollHint:'Faites défiler normalement avant activation',active3d:'3D actif',arStep1:'Visez votre table',arStep2:'Bougez lentement pour la détecter',arStep3:'Touchez pour placer le plat',table:'Table',view3d:'Voir en 3D'}
 };
+
+
+function setViewerInteraction(viewerId,active){
+  const viewer=document.getElementById(viewerId);
+  const wrap=viewer?.closest('.tap-gated-viewer');
+  if(!viewer||!wrap)return;
+  wrap.classList.toggle('viewer-active',active);
+  viewer.toggleAttribute('camera-controls',active);
+  const gate=wrap.querySelector('.viewer-activation');
+  if(gate)gate.setAttribute('aria-pressed',active?'true':'false');
+}
+function resetViewerInteraction(viewerId){setViewerInteraction(viewerId,false)}
+function setupViewerGates(){
+  $$('.viewer-activation').forEach(gate=>{
+    gate.addEventListener('click',()=>setViewerInteraction(gate.dataset.viewerTarget,true));
+  });
+  $$('.viewer-lock').forEach(lock=>{
+    lock.addEventListener('click',e=>{e.stopPropagation();setViewerInteraction(lock.dataset.viewerTarget,false)});
+  });
+}
 
 function tItem(i){return i.translations?.[lang]||i.translations?.en||{name:'Dish',description:''}}
 function esc(v=''){return String(v).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
@@ -80,6 +100,7 @@ function updateArCapability(){
 }
 function openDish(id){
   activeDish=items.find(i=>i.id===id); if(!activeDish)return;
+  resetViewerInteraction('dishViewer');
   const t=tItem(activeDish), viewer=$('#dishViewer');
   viewer.scale='1 1 1';viewer.setAttribute('scale','1 1 1');viewer.src=activeDish.model_url||'';
   $('#arSizeNote').textContent=targetWidthCm(activeDish)?`Calibrating to ${targetWidthCm(activeDish)} cm wide…`:'Real-size calibration not set';
@@ -109,7 +130,7 @@ async function boot(){
   if(!result){document.body.innerHTML='<main style="padding:10vw;font-family:system-ui"><h1>Menu unavailable</h1><p>This restaurant is not published or the link is incorrect.</p></main>';return;}
   restaurant=result.restaurant; items=result.items;
   lang=params.get('lang')||restaurant.default_language||'en'; if(!ui[lang])lang='en';
-  applyBrand();setHero();renderFilters();renderMenu();
+  applyBrand();setHero();renderFilters();renderMenu();setupViewerGates();
   await ARAPP.track(restaurant.id,'menu_view',null,params.get('table'));
 }
 $('#closeDialog').onclick=closeDish;
