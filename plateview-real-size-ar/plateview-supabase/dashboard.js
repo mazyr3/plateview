@@ -88,36 +88,101 @@ $('#publishBtn').onclick=async()=>{
   }catch(e){alert(e.message)}
 };
 
+function categoryKey(item){return (item.category||'Uncategorised').trim()||'Uncategorised'}
+function orderedCategories(source=items){
+  const first=new Map();
+  source.forEach((item,idx)=>{const c=categoryKey(item);const n=Number.isFinite(Number(item.sort_order))?Number(item.sort_order):idx;if(!first.has(c)||n<first.get(c))first.set(c,n)});
+  return [...first.keys()].sort((a,b)=>(first.get(a)-first.get(b))||a.localeCompare(b));
+}
+function sortedItemsInCategory(category,source=items){
+  return source.filter(i=>categoryKey(i)===category).sort((a,b)=>(Number(a.sort_order)||0)-(Number(b.sort_order)||0));
+}
+async function persistGroupedOrder(){
+  const categories=orderedCategories(items);
+  const flattened=categories.flatMap(c=>sortedItemsInCategory(c,items));
+  const changed=[];
+  flattened.forEach((item,index)=>{if(Number(item.sort_order)!==index){item.sort_order=index;changed.push(item)}});
+  if(changed.length) await Promise.all(changed.map(item=>ARAPP.saveMenuItem(item)));
+  items=flattened;
+}
+async function moveDish(id,direction){
+  const item=items.find(i=>i.id===id);if(!item)return;
+  const cat=categoryKey(item), group=sortedItemsInCategory(cat);
+  const from=group.findIndex(i=>i.id===id),to=from+direction;
+  if(from<0||to<0||to>=group.length)return;
+  [group[from],group[to]]=[group[to],group[from]];
+  const categories=orderedCategories(items);
+  items=categories.flatMap(c=>c===cat?group:sortedItemsInCategory(c));
+  renderMenu();
+  try{await persistGroupedOrder();renderMenu()}catch(e){alert('Could not save the new order: '+e.message);await loadRestaurants(currentRestaurant.id)}
+}
+async function dropDish(draggedId,targetId){
+  const dragged=items.find(i=>i.id===draggedId),target=items.find(i=>i.id===targetId);if(!dragged||!target)return;
+  const cat=categoryKey(dragged);if(categoryKey(target)!==cat)return;
+  const group=sortedItemsInCategory(cat),from=group.findIndex(i=>i.id===draggedId),to=group.findIndex(i=>i.id===targetId);
+  if(from<0||to<0||from===to)return;
+  const [moved]=group.splice(from,1);group.splice(to,0,moved);
+  const categories=orderedCategories(items);
+  items=categories.flatMap(c=>c===cat?group:sortedItemsInCategory(c));
+  renderMenu();
+  try{await persistGroupedOrder();renderMenu()}catch(e){alert('Could not save the new order: '+e.message);await loadRestaurants(currentRestaurant.id)}
+}
 function renderMenu(){
   if(!currentRestaurant)return;
   const q=($('#menuSearch')?.value||'').toLowerCase(),cat=$('#categoryFilter')?.value||'All categories';
-  const cats=[...new Set(items.map(i=>i.category).filter(Boolean))];
+  const cats=orderedCategories(items);
+  const previous=cat;
   $('#categoryFilter').innerHTML='<option>All categories</option>'+cats.map(c=>`<option>${c}</option>`).join('');
-  const list=items.filter(i=>{const t=tItem(i);return (!q||t.name.toLowerCase().includes(q)||i.category.toLowerCase().includes(q))&&(cat==='All categories'||i.category===cat)});
-  $('#menuList').innerHTML=list.map(i=>{
-    const t=tItem(i);
-    const allergenText=(i.allergens||[]).slice(0,3).join(' · ');
-    const visual=i.model_url
-      ? `<model-viewer src="${i.model_url}" auto-rotate interaction-prompt="none" camera-controls shadow-intensity="1" environment-image="neutral"></model-viewer>`
-      : (i.photo_url ? `<img src="${i.photo_url}" alt="${t.name}">` : `<span class="thumb-empty">No preview</span>`);
-    return `<article class="menu-row" data-edit="${i.id}">
-      <div class="dish-thumb">${visual}</div>
-      <div class="menu-info">
-        <div class="menu-title-line">
-          <h3>${t.name}</h3>
-          <strong class="menu-price">${ARAPP.money(i.price,currentRestaurant.currency)}</strong>
-        </div>
-        <p class="menu-category">${i.category||'Uncategorised'}</p>
-        ${allergenText?`<p class="menu-allergens">${allergenText}${(i.allergens||[]).length>3?' · …':''}</p>`:''}
-      </div>
-      <div class="menu-badges">
-        <span class="badge status ${i.available?'available':'off'}"><span class="status-dot"></span>${i.available?'Available':'Unavailable'}</span>
-        ${i.model_url?'<span class="badge model-ready">3D ready</span>':'<span class="badge model-missing">No 3D</span>'}
-      </div>
-      <button class="edit-dish-btn" type="button">Edit <span>→</span></button>
-    </article>`;
-  }).join('')||'<div class="empty">No dishes yet. Click “Add dish” to create your first menu item.</div>';
-  $$('[data-edit]').forEach(x=>x.onclick=()=>openEditor(x.dataset.edit));
+  $('#categoryFilter').value=cats.includes(previous)?previous:'All categories';
+  const activeCat=$('#categoryFilter').value;
+  const filtered=items.filter(i=>{const t=tItem(i),c=categoryKey(i);return (!q||t.name.toLowerCase().includes(q)||c.toLowerCase().includes(q))&&(activeCat==='All categories'||c===activeCat)});
+  const visibleCats=orderedCategories(filtered);
+  $('#menuList').innerHTML=visibleCats.map(category=>{
+    const group=sortedItemsInCategory(category,filtered);
+    return `<section class="menu-category-group" data-category="${category.replaceAll('"','&quot;')}">
+      <div class="category-heading"><div><span class="category-kicker">CATEGORY</span><h2>${category}</h2></div><span class="category-count">${group.length} ${group.length===1?'dish':'dishes'}</span></div>
+      <div class="category-dishes">${group.map((i,index)=>{
+        const t=tItem(i);
+        const allergenText=(i.allergens||[]).slice(0,3).join(' · ');
+        const visual=i.model_url
+          ? `<model-viewer src="${i.model_url}" auto-rotate interaction-prompt="none" camera-controls shadow-intensity="1" environment-image="neutral"></model-viewer>`
+          : (i.photo_url ? `<img src="${i.photo_url}" alt="${t.name}">` : `<span class="thumb-empty">No preview</span>`);
+        return `<article class="menu-row" data-edit="${i.id}" data-order-id="${i.id}">
+          <div class="reorder-controls" aria-label="Reorder ${t.name}">
+            <button class="drag-handle" type="button" draggable="true" data-drag-id="${i.id}" title="Drag to reorder" aria-label="Drag ${t.name} to reorder">⋮⋮</button>
+            <div class="order-arrows">
+              <button type="button" class="order-btn move-up" data-move-id="${i.id}" ${index===0?'disabled':''} aria-label="Move ${t.name} up">↑</button>
+              <button type="button" class="order-btn move-down" data-move-id="${i.id}" ${index===group.length-1?'disabled':''} aria-label="Move ${t.name} down">↓</button>
+            </div>
+          </div>
+          <div class="dish-thumb">${visual}</div>
+          <div class="menu-info">
+            <div class="menu-title-line"><h3>${t.name}</h3><strong class="menu-price">${ARAPP.money(i.price,currentRestaurant.currency)}</strong></div>
+            ${allergenText?`<p class="menu-allergens">${allergenText}${(i.allergens||[]).length>3?' · …':''}</p>`:''}
+          </div>
+          <div class="menu-badges">
+            <span class="badge status ${i.available?'available':'off'}"><span class="status-dot"></span>${i.available?'Available':'Unavailable'}</span>
+            ${i.model_url?'<span class="badge model-ready">3D ready</span>':'<span class="badge model-missing">No 3D</span>'}
+          </div>
+          <button class="edit-dish-btn" type="button">Edit <span>→</span></button>
+        </article>`;
+      }).join('')}</div>
+    </section>`;
+  }).join('')||'<div class="empty">No dishes found. Click “Add dish” to create your first menu item.</div>';
+
+  $$('[data-edit]').forEach(row=>row.addEventListener('click',e=>{if(e.target.closest('.reorder-controls'))return;openEditor(row.dataset.edit)}));
+  $$('.move-up').forEach(b=>b.addEventListener('click',e=>{e.stopPropagation();moveDish(b.dataset.moveId,-1)}));
+  $$('.move-down').forEach(b=>b.addEventListener('click',e=>{e.stopPropagation();moveDish(b.dataset.moveId,1)}));
+  $$('.drag-handle').forEach(handle=>{
+    handle.addEventListener('click',e=>e.stopPropagation());
+    handle.addEventListener('dragstart',e=>{e.stopPropagation();e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/plain',handle.dataset.dragId);handle.closest('.menu-row')?.classList.add('dragging')});
+    handle.addEventListener('dragend',()=>{$$('.menu-row').forEach(r=>r.classList.remove('dragging','drag-over'))});
+  });
+  $$('.menu-row').forEach(row=>{
+    row.addEventListener('dragover',e=>{const draggedId=e.dataTransfer.types.includes('text/plain');if(!draggedId)return;e.preventDefault();row.classList.add('drag-over')});
+    row.addEventListener('dragleave',()=>row.classList.remove('drag-over'));
+    row.addEventListener('drop',e=>{e.preventDefault();row.classList.remove('drag-over');const id=e.dataTransfer.getData('text/plain');dropDish(id,row.dataset.orderId)});
+  });
 }
 $('#menuSearch').oninput=renderMenu;$('#categoryFilter').onchange=renderMenu;$('#addDishBtn').onclick=()=>openEditor();
 
