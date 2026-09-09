@@ -200,9 +200,24 @@ function drawQR(){
   $('#qrUrl').value=absolute;$('#qrCode').innerHTML='';
   if(window.QRCode)new QRCode($('#qrCode'),{text:absolute,width:180,height:180,correctLevel:QRCode.CorrectLevel.M});
   $('#phonePreview').src=liveUrl(t);
+  if($('#qrRestaurantName'))$('#qrRestaurantName').textContent=currentRestaurant.name;
+  if($('#qrTableLabel'))$('#qrTableLabel').textContent=`Table ${t}`;
+  if($('#qrLiveBadge'))$('#qrLiveBadge').textContent=currentRestaurant.published?'Live':'Draft';
 }
-$('#copyQrBtn').onclick=async()=>{await navigator.clipboard.writeText($('#qrUrl').value);$('#copyQrBtn').textContent='Copied';setTimeout(()=>$('#copyQrBtn').textContent='Copy link',1200)};
+$('#copyQrBtn').onclick=async()=>{await navigator.clipboard.writeText($('#qrUrl').value);$('#copyQrBtn').textContent='Copied ✓';setTimeout(()=>$('#copyQrBtn').textContent='Copy link',1200)};
+$('#openQrBtn').onclick=()=>window.open($('#qrUrl').value,'_blank','noopener');
+$('#shareQrBtn').onclick=async()=>{
+  const url=$('#qrUrl').value,t=$('#tableSelect').value||1;
+  if(navigator.share){try{await navigator.share({title:`${currentRestaurant.name} — Table ${t}`,text:'Open the 3D & AR menu',url});return}catch(e){if(e.name==='AbortError')return}}
+  await navigator.clipboard.writeText(url);$('#shareQrBtn').textContent='Link copied ✓';setTimeout(()=>$('#shareQrBtn').textContent='Share',1200);
+};
 $('#downloadQrBtn').onclick=()=>{const img=$('#qrCode img')||$('#qrCode canvas');if(!img)return;const a=document.createElement('a');a.download=`${currentRestaurant.slug}-table-${$('#tableSelect').value}-qr.png`;a.href=img.src||img.toDataURL('image/png');a.click()};
+$('#printAllQrBtn').onclick=()=>{
+  const n=Math.max(1,Number(currentRestaurant.tables)||1),base=location.href;
+  const cards=Array.from({length:n},(_,i)=>{const table=i+1,url=new URL(liveUrl(table),base).href;return `<div class="card"><div class="qr" data-url="${url.replaceAll('&','&amp;')}"></div><h2>${currentRestaurant.name}</h2><b>Table ${table}</b><p>Scan to view the menu in 3D & AR</p></div>`}).join('');
+  const w=window.open('','_blank');if(!w)return alert('Allow pop-ups to print all table QR codes.');
+  w.document.write(`<!doctype html><html><head><title>${currentRestaurant.name} QR codes</title><style>body{font-family:Arial,sans-serif;margin:24px;color:#171713}.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:20px}.card{border:1px solid #ddd;border-radius:18px;padding:22px;text-align:center;break-inside:avoid}.qr{display:flex;justify-content:center;margin-bottom:10px}h2{font-family:Georgia,serif;margin:8px 0 4px;font-size:24px}b{font-size:14px}p{font-size:11px;color:#666}@media print{body{margin:10mm}.grid{gap:10mm}.card{min-height:115mm;display:flex;flex-direction:column;justify-content:center;align-items:center}}</style><script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"><\/script></head><body><div class="grid">${cards}</div><script>window.onload=()=>{document.querySelectorAll('.qr').forEach(el=>new QRCode(el,{text:el.dataset.url,width:180,height:180,correctLevel:QRCode.CorrectLevel.M}));setTimeout(()=>window.print(),400)}<\/script></body></html>`);w.document.close();
+};
 
 async function renderAnalytics(){
   if(!currentRestaurant)return;

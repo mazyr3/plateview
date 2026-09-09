@@ -1,0 +1,28 @@
+PlateView — Mobile + QR upgrade
+
+Changed frontend files:
+- index.html
+- app.js
+- styles.css
+- dashboard.html
+- dashboard.js
+- dashboard.css
+
+What changed:
+- Mobile-first customer menu layout
+- Compact phone menu cards
+- Sticky category filters on mobile
+- Cleaner dish detail / full-screen mobile experience
+- Persistent Open camera AR button
+- Clear real-size calibration status
+- Better device/AR messaging
+- Table number badge on menu
+- Better automatic 3D framing
+- QR card preview with restaurant/table label
+- Open table menu button
+- Share table link button
+- Download current table QR
+- Print all table QR codes in one printable sheet
+
+No Supabase schema changes are required.
+Keep your existing config.js with your real Supabase URL and publishable key.
