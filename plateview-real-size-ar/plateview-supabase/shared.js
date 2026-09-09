@@ -24,7 +24,10 @@ const ARAPP = (() => {
     accent: '#b7482d',
     languages: ['en','nl','fr'],
     default_language: 'en',
-    tables: 12
+    tables: 12,
+    logo_url:'',
+    hero_image_url:'',
+    hero_mode:'3d'
   };
 
   const demoItems = [
@@ -101,7 +104,10 @@ const ARAPP = (() => {
       accent:'#b7482d',
       languages:['en','nl','fr'],
       default_language:'en',
-      tables:10
+      tables:10,
+      logo_url:'',
+      hero_image_url:'',
+      hero_mode:'3d'
     };
     const {data,error}=await supabase.from('restaurants').insert(row).select().single();
     if(error) throw error;
@@ -209,11 +215,18 @@ const ARAPP = (() => {
   }
 
   async function analytics(restaurantId){
-    if(!supabase) return {menu_view:0,dish_view:0,ar_launch:0};
-    const {data,error}=await supabase.from('analytics_events').select('event_type').eq('restaurant_id',restaurantId);
+    if(!supabase) return {menu_view:0,dish_view:0,ar_launch:0,by_table:[]};
+    const {data,error}=await supabase.from('analytics_events').select('event_type,table_number').eq('restaurant_id',restaurantId);
     if(error) throw error;
-    const counts={menu_view:0,dish_view:0,ar_launch:0};
-    (data||[]).forEach(x=>{ if(counts[x.event_type]!==undefined) counts[x.event_type]++; });
+    const counts={menu_view:0,dish_view:0,ar_launch:0,by_table:[]},tableMap=new Map();
+    (data||[]).forEach(x=>{
+      if(counts[x.event_type]!==undefined) counts[x.event_type]++;
+      if(x.table_number){
+        if(!tableMap.has(x.table_number))tableMap.set(x.table_number,{table:x.table_number,menu_view:0,dish_view:0,ar_launch:0});
+        const row=tableMap.get(x.table_number);if(row[x.event_type]!==undefined)row[x.event_type]++;
+      }
+    });
+    counts.by_table=[...tableMap.values()].sort((a,b)=>a.table-b.table);
     return counts;
   }
 

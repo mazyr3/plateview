@@ -33,7 +33,8 @@ function esc(v=''){return String(v).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;
 function applyBrand(){
   document.documentElement.style.setProperty('--accent',restaurant.accent||'#b7482d');
   $('#restaurantName').textContent=restaurant.name;
-  $('#brandMark').textContent=(restaurant.name||'M').trim().charAt(0).toUpperCase();
+  const mark=$('#brandMark');
+  if(restaurant.logo_url){mark.innerHTML=`<img src="${esc(restaurant.logo_url)}" alt="${esc(restaurant.name)} logo">`;mark.classList.add('has-logo')}else{mark.textContent=(restaurant.name||'M').trim().charAt(0).toUpperCase();mark.classList.remove('has-logo')}
   $('#footerName').textContent=restaurant.name;
   $('#tagline').textContent=restaurant.tagline||'Explore every dish before you choose.';
   document.title=`${restaurant.name} — 3D & AR Menu`;
@@ -46,8 +47,16 @@ function applyBrand(){
   $('#draftBanner').classList.add('hidden');
 }
 function setHero(){
+  const card=$('#heroViewerWrap'),viewer=$('#heroViewer'),gate=card.querySelector('.viewer-activation'),lock=card.querySelector('.viewer-lock');
+  const useImage=(restaurant.hero_mode==='image'&&restaurant.hero_image_url);
+  card.classList.toggle('hero-image-mode',!!useImage);
+  if(useImage){
+    viewer.removeAttribute('src');card.style.backgroundImage=`url("${restaurant.hero_image_url}")`;gate.classList.add('hidden');lock.classList.add('hidden');
+    return;
+  }
+  card.style.backgroundImage='';gate.classList.remove('hidden');
   const i=items.find(x=>x.model_url&&x.available&&x.published)||items.find(x=>x.model_url&&x.published)||items[0];
-  if(i){ $('#heroViewer').src=i.model_url||''; }
+  if(i){viewer.src=i.model_url||'';}
 }
 function renderFilters(){
   const cats=['All',...new Set(items.filter(i=>i.published).map(i=>i.category).filter(Boolean))];

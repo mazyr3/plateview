@@ -58,3 +58,15 @@
 .menu-row .menu-category{display:none}
 @media(max-width:980px){.menu-row{grid-template-columns:48px 96px minmax(0,1fr) auto}.reorder-controls{grid-row:1/3}.menu-badges{grid-column:3}.edit-dish-btn{grid-column:4}.order-arrows{display:grid}}
 @media(max-width:700px){.menu-list{gap:24px}.category-heading{padding-left:2px;padding-right:2px}.category-heading h2{font-size:24px}.menu-row{grid-template-columns:42px 78px minmax(0,1fr);gap:10px}.reorder-controls{grid-row:1/3;flex-direction:column;justify-content:center}.drag-handle{display:none}.order-arrows{gap:5px}.order-btn{width:32px;height:32px}.dish-thumb{width:78px;height:70px}.menu-badges{grid-column:3}.edit-dish-btn{grid-column:3;grid-row:auto}.menu-price{font-size:16px}}
+
+
+/* Branding settings */
+.branding-settings{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+.brand-assets-panel{grid-column:1/-1}
+.color-setting{display:flex;align-items:center;gap:10px}.color-setting input[type=color]{width:54px;height:42px;padding:3px}.color-setting span{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--muted);font-size:12px}
+.brand-upload-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:18px}.brand-upload-card{display:grid;grid-template-columns:150px minmax(0,1fr);gap:16px;align-items:center;border:1px solid var(--line);border-radius:18px;padding:14px;background:#faf8f3}.brand-upload-card>div:last-child{display:grid;gap:7px}.brand-upload-card small{display:block;color:var(--muted);font-size:11px;line-height:1.45}.brand-preview{height:130px;border-radius:14px;background:#ece7dc;border:1px solid #ddd6ca;display:grid;place-items:center;overflow:hidden;color:#8c8579}.brand-preview img{width:100%;height:100%;object-fit:cover}.logo-preview{width:130px}.logo-preview img{object-fit:contain;background:#fff}.logo-preview span{font:italic 44px Georgia,serif;color:var(--ink)}.hero-preview{width:150px}.upload-zone.compact{padding:9px 10px;margin:0;font-size:11px}.danger-text{color:#9a4a3b;text-align:left;padding:0}.brand-upload-card select{margin-top:5px}
+.analytics-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:16px}.table-analytics{display:grid;gap:7px}.table-analytics-row{display:grid;grid-template-columns:80px repeat(3,1fr);gap:8px;align-items:center;padding:11px 0;border-bottom:1px solid var(--line);font-size:11px}.table-analytics-row b{font-size:12px}.table-analytics-row span{color:var(--muted)}.compact-empty{padding:22px}
+@media(max-width:950px){.branding-settings,.analytics-grid{grid-template-columns:1fr}.brand-upload-grid{grid-template-columns:1fr}.brand-assets-panel{grid-column:auto}}
+@media(max-width:600px){.brand-upload-card{grid-template-columns:94px 1fr}.brand-preview,.logo-preview,.hero-preview{width:94px;height:94px}.table-analytics-row{grid-template-columns:64px 1fr 1fr}.table-analytics-row span:last-child{grid-column:2/4}}
+
+.qr-brand-logo{width:48px;height:48px;margin:0 auto 7px}.qr-brand-logo img{width:100%;height:100%;object-fit:contain;border-radius:10px}

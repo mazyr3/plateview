@@ -1,0 +1,9 @@
+PlateView Branding + QR/Table upgrade
+
+1. Run supabase/branding-upgrade.sql once in Supabase SQL Editor.
+2. Replace the frontend files in GitHub and commit. Vercel redeploys automatically.
+3. Dashboard > Settings now supports logo upload, hero image upload, hero mode and accent color.
+4. Dashboard > QR & tables already generates a unique ?r=RESTAURANT&table=N URL for every table.
+5. Analytics now shows activity by table from those QR links.
+
+No existing restaurants, dishes, 3D models or analytics data are deleted.

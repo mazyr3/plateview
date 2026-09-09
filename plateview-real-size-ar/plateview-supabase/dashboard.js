@@ -1,6 +1,6 @@
 
 const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
-let restaurants=[], currentRestaurant=null, items=[], editingId=null, editLang='en', pendingModel=null, pendingPhoto=null;
+let restaurants=[], currentRestaurant=null, items=[], editingId=null, editLang='en', pendingModel=null, pendingPhoto=null, pendingLogo=null, pendingHeroImage=null, removeLogoRequested=false, removeHeroRequested=false;
 
 function msg(text){$('#authMessage').textContent=text||''}
 function stat(label,value){return `<article class="stat"><small>${label}</small><strong>${value}</strong></article>`}
@@ -270,6 +270,7 @@ function drawQR(){
   if(window.QRCode)new QRCode($('#qrCode'),{text:absolute,width:180,height:180,correctLevel:QRCode.CorrectLevel.M});
   $('#phonePreview').src=liveUrl(t);
   if($('#qrRestaurantName'))$('#qrRestaurantName').textContent=currentRestaurant.name;
+  if($('#qrBrandLogo')){const el=$('#qrBrandLogo');el.innerHTML=currentRestaurant.logo_url?`<img src="${currentRestaurant.logo_url}" alt="">`:'';el.classList.toggle('hidden',!currentRestaurant.logo_url)}
   if($('#qrTableLabel'))$('#qrTableLabel').textContent=`Table ${t}`;
   if($('#qrLiveBadge'))$('#qrLiveBadge').textContent=currentRestaurant.published?'Live':'Draft';
 }
@@ -283,9 +284,9 @@ $('#shareQrBtn').onclick=async()=>{
 $('#downloadQrBtn').onclick=()=>{const img=$('#qrCode img')||$('#qrCode canvas');if(!img)return;const a=document.createElement('a');a.download=`${currentRestaurant.slug}-table-${$('#tableSelect').value}-qr.png`;a.href=img.src||img.toDataURL('image/png');a.click()};
 $('#printAllQrBtn').onclick=()=>{
   const n=Math.max(1,Number(currentRestaurant.tables)||1),base=location.href;
-  const cards=Array.from({length:n},(_,i)=>{const table=i+1,url=new URL(liveUrl(table),base).href;return `<div class="card"><div class="qr" data-url="${url.replaceAll('&','&amp;')}"></div><h2>${currentRestaurant.name}</h2><b>Table ${table}</b><p>Scan to view the menu in 3D & AR</p></div>`}).join('');
+  const logo=currentRestaurant.logo_url?`<img class="logo" src="${currentRestaurant.logo_url}" alt="">`:'';const cards=Array.from({length:n},(_,i)=>{const table=i+1,url=new URL(liveUrl(table),base).href;return `<div class="card">${logo}<div class="qr" data-url="${url.replaceAll('&','&amp;')}"></div><h2>${currentRestaurant.name}</h2><b>Table ${table}</b><p>Scan to view the menu in 3D & AR</p></div>`}).join('');
   const w=window.open('','_blank');if(!w)return alert('Allow pop-ups to print all table QR codes.');
-  w.document.write(`<!doctype html><html><head><title>${currentRestaurant.name} QR codes</title><style>body{font-family:Arial,sans-serif;margin:24px;color:#171713}.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:20px}.card{border:1px solid #ddd;border-radius:18px;padding:22px;text-align:center;break-inside:avoid}.qr{display:flex;justify-content:center;margin-bottom:10px}h2{font-family:Georgia,serif;margin:8px 0 4px;font-size:24px}b{font-size:14px}p{font-size:11px;color:#666}@media print{body{margin:10mm}.grid{gap:10mm}.card{min-height:115mm;display:flex;flex-direction:column;justify-content:center;align-items:center}}</style><script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"><\/script></head><body><div class="grid">${cards}</div><script>window.onload=()=>{document.querySelectorAll('.qr').forEach(el=>new QRCode(el,{text:el.dataset.url,width:180,height:180,correctLevel:QRCode.CorrectLevel.M}));setTimeout(()=>window.print(),400)}<\/script></body></html>`);w.document.close();
+  w.document.write(`<!doctype html><html><head><title>${currentRestaurant.name} QR codes</title><style>body{font-family:Arial,sans-serif;margin:24px;color:#171713}.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:20px}.card{border:1px solid #ddd;border-radius:18px;padding:22px;text-align:center;break-inside:avoid}.logo{width:58px;height:58px;object-fit:contain;margin:0 auto 10px;display:block;border-radius:12px}.qr{display:flex;justify-content:center;margin-bottom:10px}h2{font-family:Georgia,serif;margin:8px 0 4px;font-size:24px}b{font-size:14px}p{font-size:11px;color:#666}@media print{body{margin:10mm}.grid{gap:10mm}.card{min-height:115mm;display:flex;flex-direction:column;justify-content:center;align-items:center}}</style><script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"><\/script></head><body><div class="grid">${cards}</div><script>window.onload=()=>{document.querySelectorAll('.qr').forEach(el=>new QRCode(el,{text:el.dataset.url,width:180,height:180,correctLevel:QRCode.CorrectLevel.M}));setTimeout(()=>window.print(),400)}<\/script></body></html>`);w.document.close();
 };
 
 async function renderAnalytics(){
@@ -295,18 +296,40 @@ async function renderAnalytics(){
     $('#analyticsStats').innerHTML=vals.map(([l,v])=>stat(l,v)).join('');
     const max=Math.max(1,...vals.map(v=>v[1]));
     $('#funnel').innerHTML=vals.map(([l,v])=>`<div class="funnel-row"><span>${l}</span><div class="bar"><span style="width:${Math.max(3,v/max*100)}%"></span></div><b>${v}</b></div>`).join('');
+    const byTable=a.by_table||[];
+    $('#tableAnalytics').innerHTML=byTable.length?byTable.map(row=>`<div class="table-analytics-row"><b>Table ${row.table}</b><span>${row.menu_view} views</span><span>${row.dish_view} dish opens</span><span>${row.ar_launch} AR</span></div>`).join(''):'<div class="empty compact-empty">No table scans recorded yet.</div>';
   }catch(e){$('#analyticsStats').innerHTML=`<div class="empty">${e.message}</div>`}
+}
+function previewBrandAssets(){
+  const name=currentRestaurant?.name||'Restaurant';
+  const logoUrl=pendingLogo?URL.createObjectURL(pendingLogo):(removeLogoRequested?'':currentRestaurant?.logo_url||'');
+  $('#logoPreview').innerHTML=logoUrl?`<img src="${logoUrl}" alt="Logo preview">`:`<span>${name.trim().charAt(0).toUpperCase()||'R'}</span>`;
+  const heroUrl=pendingHeroImage?URL.createObjectURL(pendingHeroImage):(removeHeroRequested?'':currentRestaurant?.hero_image_url||'');
+  $('#heroImagePreview').innerHTML=heroUrl?`<img src="${heroUrl}" alt="Hero preview">`:'<span>Hero image</span>';
 }
 function renderSettings(){
   if(!currentRestaurant)return;
-  $('#setName').value=currentRestaurant.name;$('#setSlug').value=currentRestaurant.slug;$('#setTagline').value=currentRestaurant.tagline||'';$('#setAccent').value=currentRestaurant.accent||'#b7482d';$('#setTables').value=currentRestaurant.tables||1;$('#setDefaultLang').value=currentRestaurant.default_language||'en';
+  pendingLogo=null;pendingHeroImage=null;removeLogoRequested=false;removeHeroRequested=false;
+  $('#setName').value=currentRestaurant.name;$('#setSlug').value=currentRestaurant.slug;$('#setTagline').value=currentRestaurant.tagline||'';$('#setAccent').value=currentRestaurant.accent||'#b7482d';$('#accentValue').textContent=$('#setAccent').value;$('#setTables').value=currentRestaurant.tables||1;$('#setDefaultLang').value=currentRestaurant.default_language||'en';$('#setHeroMode').value=currentRestaurant.hero_mode||'3d';
+  previewBrandAssets();
 }
+$('#setAccent').addEventListener('input',()=>$('#accentValue').textContent=$('#setAccent').value);
+$('#logoUpload').addEventListener('change',e=>{pendingLogo=e.target.files?.[0]||null;removeLogoRequested=false;previewBrandAssets()});
+$('#heroImageUpload').addEventListener('change',e=>{pendingHeroImage=e.target.files?.[0]||null;removeHeroRequested=false;previewBrandAssets()});
+$('#removeLogo').onclick=()=>{pendingLogo=null;removeLogoRequested=true;$('#logoUpload').value='';previewBrandAssets()};
+$('#removeHeroImage').onclick=()=>{pendingHeroImage=null;removeHeroRequested=true;$('#heroImageUpload').value='';previewBrandAssets()};
 $('#saveSettings').onclick=async()=>{
   if(!currentRestaurant)return;
+  const button=$('#saveSettings');button.disabled=true;button.textContent='Saving…';
   try{
-    const patch={name:$('#setName').value.trim()||'Restaurant',slug:ARAPP.slugify($('#setSlug').value||$('#setName').value),tagline:$('#setTagline').value.trim(),accent:$('#setAccent').value,tables:Math.max(1,Number($('#setTables').value)||1),default_language:$('#setDefaultLang').value};
+    let logoUrl=removeLogoRequested?'':(currentRestaurant.logo_url||'');
+    let heroUrl=removeHeroRequested?'':(currentRestaurant.hero_image_url||'');
+    if(pendingLogo)logoUrl=await ARAPP.uploadAsset(pendingLogo,currentRestaurant.id,'branding/logo');
+    if(pendingHeroImage)heroUrl=await ARAPP.uploadAsset(pendingHeroImage,currentRestaurant.id,'branding/hero');
+    const patch={name:$('#setName').value.trim()||'Restaurant',slug:ARAPP.slugify($('#setSlug').value||$('#setName').value),tagline:$('#setTagline').value.trim(),accent:$('#setAccent').value,tables:Math.max(1,Number($('#setTables').value)||1),default_language:$('#setDefaultLang').value,logo_url:logoUrl,hero_image_url:heroUrl,hero_mode:$('#setHeroMode').value};
     currentRestaurant=await ARAPP.updateRestaurant(currentRestaurant.id,patch);restaurants=restaurants.map(r=>r.id===currentRestaurant.id?currentRestaurant:r);renderAll();
   }catch(e){alert(e.message)}
+  finally{button.disabled=false;button.textContent='Save settings'}
 };
 $('#refreshData').onclick=()=>loadRestaurants(currentRestaurant?.id);
 
