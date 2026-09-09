@@ -1,0 +1,20 @@
+{
+  "cleanUrls": false,
+  "rewrites": [
+    { "source": "/app", "destination": "/dashboard.html" },
+    { "source": "/login", "destination": "/auth.html?mode=login" },
+    { "source": "/signup", "destination": "/auth.html?mode=signup" },
+    { "source": "/pricing", "destination": "/pricing.html" },
+    { "source": "/admin", "destination": "/admin.html" },
+    { "source": "/menu/:slug", "destination": "/menu.html?r=:slug" }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" }
+      ]
+    }
+  ]
+}

@@ -134,8 +134,9 @@ async function launchAR(){
 }
 function closeDish(){if($('#dishDialog').open)$('#dishDialog').close();document.body.classList.remove('dialog-open')}
 async function boot(){
+  const demo=params.get('demo')==='1';
   const slug=params.get('r')||'maison-table';
-  const result=await ARAPP.getPublicRestaurant(slug);
+  const result=demo?{restaurant:ARAPP.demoRestaurant,items:ARAPP.demoItems}:await ARAPP.getPublicRestaurant(slug);
   if(!result){document.body.innerHTML='<main style="padding:10vw;font-family:system-ui"><h1>Menu unavailable</h1><p>This restaurant is not published or the link is incorrect.</p></main>';return;}
   restaurant=result.restaurant; items=result.items;
   lang=params.get('lang')||restaurant.default_language||'en'; if(!ui[lang])lang='en';

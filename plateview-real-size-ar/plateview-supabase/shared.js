@@ -70,9 +70,10 @@ const ARAPP = (() => {
     return data;
   }
 
-  async function signUp(email,password){
+  async function signUp(email,password,redirectTo=null){
     if(!supabase) throw new Error('Supabase is not configured.');
-    const {data,error}=await supabase.auth.signUp({email,password});
+    const emailRedirectTo=redirectTo||(typeof location!=='undefined'?`${location.origin}/auth.html?mode=login`:undefined);
+    const {data,error}=await supabase.auth.signUp({email,password,options:{emailRedirectTo}});
     if(error) throw error;
     return data;
   }
@@ -85,7 +86,8 @@ const ARAPP = (() => {
 
   async function restaurantsForOwner(){
     if(!supabase) return [];
-    const {data,error}=await supabase.from('restaurants').select('*').order('created_at');
+    const s=await session(); if(!s) return [];
+    const {data,error}=await supabase.from('restaurants').select('*').eq('owner_id',s.user.id).order('created_at');
     if(error) throw error;
     return data || [];
   }
@@ -101,7 +103,7 @@ const ARAPP = (() => {
       tagline:input.tagline || 'Explore our menu in 3D and AR.',
       currency:'EUR',
       published:false,
-      accent:'#b7482d',
+      accent:input.accent || '#b7482d',
       languages:['en','nl','fr'],
       default_language:'en',
       tables:10,
@@ -237,9 +239,57 @@ const ARAPP = (() => {
     return counts;
   }
 
+  async function profile(){
+    if(!supabase) return null;
+    const s=await session(); if(!s) return null;
+    const {data,error}=await supabase.from('profiles').select('*').eq('user_id',s.user.id).maybeSingle();
+    if(error){
+      // Backwards-compatible while the SaaS upgrade SQL has not been run yet.
+      if(String(error.message||'').toLowerCase().includes('profiles')) return null;
+      throw error;
+    }
+    return data;
+  }
+
+  async function subscription(){
+    if(!supabase) return null;
+    const s=await session(); if(!s) return null;
+    const {data,error}=await supabase.from('subscriptions').select('*').eq('user_id',s.user.id).maybeSingle();
+    if(error){
+      if(String(error.message||'').toLowerCase().includes('subscriptions')) return null;
+      throw error;
+    }
+    return data;
+  }
+
+  async function accountAccess(){
+    const s=await session();
+    if(!s) return {signedIn:false,allowed:false,reason:'signed_out',profile:null,subscription:null};
+    let p=null,sub=null;
+    try{[p,sub]=await Promise.all([profile(),subscription()]);}catch(e){console.warn('Account access lookup failed',e)}
+    // If the SaaS tables are not installed yet, preserve the old dashboard instead of locking the owner out.
+    if(!p && !sub) return {signedIn:true,allowed:true,reason:'legacy_schema',profile:null,subscription:{status:'legacy',plan:'legacy'}};
+    const role=p?.role||'customer';
+    const accountStatus=p?.account_status||'active';
+    const status=sub?.status||'inactive';
+    const billingOk=['active','trialing','legacy'].includes(status);
+    const allowed=role==='admin'||(accountStatus==='active'&&billingOk);
+    return {signedIn:true,allowed,reason:accountStatus==='suspended'?'suspended':(billingOk?'ok':'subscription_required'),profile:p,subscription:sub};
+  }
+
+  async function apiWithAuth(path,options={}){
+    const s=await session(); if(!s) throw new Error('Please sign in first.');
+    const headers={...(options.headers||{}),Authorization:`Bearer ${s.access_token}`};
+    if(options.body && !headers['Content-Type']) headers['Content-Type']='application/json';
+    const res=await fetch(path,{...options,headers});
+    let data={}; try{data=await res.json()}catch(e){}
+    if(!res.ok) throw new Error(data.error||`Request failed (${res.status})`);
+    return data;
+  }
+
   return {
     configured,supabase,allergens,slugify,money,session,signIn,signUp,signOut,
     restaurantsForOwner,createRestaurant,updateRestaurant,getPublicRestaurant,getOwnerRestaurant,
-    saveMenuItem,deleteMenuItem,uploadAsset,track,analytics,demoRestaurant,demoItems
+    saveMenuItem,deleteMenuItem,uploadAsset,track,analytics,profile,subscription,accountAccess,apiWithAuth,demoRestaurant,demoItems
   };
 })();

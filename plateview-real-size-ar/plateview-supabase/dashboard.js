@@ -1,16 +1,16 @@
 
 const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
-let restaurants=[], currentRestaurant=null, items=[], editingId=null, editLang='en', pendingModel=null, pendingPhoto=null, pendingLogo=null, pendingHeroImage=null, removeLogoRequested=false, removeHeroRequested=false;
+let restaurants=[], currentRestaurant=null, items=[], editingId=null, editLang='en', pendingModel=null, pendingPhoto=null, pendingLogo=null, pendingHeroImage=null, removeLogoRequested=false, removeHeroRequested=false, accountAccess=null;
 
 function msg(text){$('#authMessage').textContent=text||''}
 function stat(label,value){return `<article class="stat"><small>${label}</small><strong>${value}</strong></article>`}
 function tItem(i,l='en'){return i.translations?.[l]||i.translations?.en||{name:'Unnamed dish',description:''}}
-function liveUrl(table){return `index.html?r=${encodeURIComponent(currentRestaurant.slug)}${table?`&table=${table}`:''}`}
+function liveUrl(table){return `menu.html?r=${encodeURIComponent(currentRestaurant.slug)}${table?`&table=${table}`:''}`}
 function setView(name){
   $$('.view').forEach(v=>v.classList.toggle('active',v.id===`view-${name}`));
   $$('.nav').forEach(n=>n.classList.toggle('active',n.dataset.view===name));
   const title=name[0].toUpperCase()+name.slice(1); $('#pageTitle').textContent=title;$('#crumb').textContent=`Dashboard / ${title}`;
-  if(name==='qr')renderQR(); if(name==='analytics')renderAnalytics();
+  if(name==='qr')renderQR(); if(name==='analytics')renderAnalytics(); if(name==='billing')renderBilling();
 }
 $$('.nav').forEach(n=>n.onclick=()=>setView(n.dataset.view));$$('[data-jump]').forEach(b=>b.onclick=()=>setView(b.dataset.jump));
 
@@ -18,7 +18,20 @@ async function ensureAuth(){
   if(!ARAPP.configured){$('#setupScreen').classList.remove('hidden');return;}
   const s=await ARAPP.session();
   if(!s){$('#loginScreen').classList.remove('hidden');return;}
+  accountAccess=await ARAPP.accountAccess();
+  if(!accountAccess.allowed){
+    $('#subscriptionScreen').classList.remove('hidden');
+    if(accountAccess.reason==='suspended'){
+      $('#lockTitle').textContent='Account suspended';
+      $('#lockCopy').textContent='This PlateView account has been suspended. Contact PlateView support if you believe this is a mistake.';
+      $('#lockBillingBtn').classList.add('hidden');
+    }
+    return;
+  }
   $('#app').classList.remove('hidden');
+  if(accountAccess.profile?.role==='admin') $('#adminLink').classList.remove('hidden');
+  const plan=(accountAccess.subscription?.plan||'active').toUpperCase();
+  $('#accountPlanBadge').textContent=plan==='LEGACY'?'LEGACY ACCESS':plan;
   await loadRestaurants();
 }
 $('#loginForm').onsubmit=async e=>{
@@ -26,15 +39,9 @@ $('#loginForm').onsubmit=async e=>{
   try{await ARAPP.signIn($('#loginEmail').value,$('#loginPassword').value);location.reload()}
   catch(err){msg(err.message)}
 };
-$('#signupBtn').onclick=async()=>{
-  msg('Creating account…');
-  try{
-    const d=await ARAPP.signUp($('#loginEmail').value,$('#loginPassword').value);
-    msg(d.session?'Account created. Signing you in…':'Account created. Check your email to confirm, then sign in.');
-    if(d.session) location.reload();
-  }catch(err){msg(err.message)}
-};
 $('#logoutBtn').onclick=async()=>{await ARAPP.signOut();location.reload()};
+$('#lockLogoutBtn').onclick=async()=>{await ARAPP.signOut();location.href='index.html'};
+$('#lockBillingBtn').onclick=async()=>{const b=$('#lockBillingBtn');b.disabled=true;b.textContent='Opening…';try{const d=await ARAPP.apiWithAuth('/api/create-portal-session',{method:'POST'});location.href=d.url}catch(e){$('#lockMessage').textContent=e.message;b.disabled=false;b.textContent='Manage billing'}};
 
 async function loadRestaurants(preferredId=null){
   restaurants=await ARAPP.restaurantsForOwner();
@@ -63,6 +70,10 @@ $('#createRestaurantBtn').onclick=async()=>{
 
 function renderAll(){
   renderRestaurantSelect();
+  const plan=(accountAccess?.subscription?.plan||'legacy').toLowerCase();
+  const limit=accountAccess?.profile?.role==='admin'||plan==='legacy'?1000:(plan==='pro'?5:1);
+  $('#newRestaurantBtn').disabled=restaurants.length>=limit;
+  $('#newRestaurantBtn').title=restaurants.length>=limit?`Your ${plan} plan allows ${limit===1?'1 restaurant':limit+' restaurants'}. Manage billing to change plan.`:'Create another restaurant';
   if(!currentRestaurant){
     $('#welcomeName').textContent='Create your first restaurant';
     $('#overviewStats').innerHTML=stat('Restaurants',0);
@@ -393,6 +404,24 @@ $('#saveSettings').onclick=async()=>{
   }catch(e){alert(e.message)}
   finally{button.disabled=false;button.textContent='Save settings'}
 };
+async function renderBilling(){
+  try{
+    accountAccess=await ARAPP.accountAccess();
+    const sub=accountAccess.subscription||{};
+    const plan=(sub.plan||'No active plan').replace(/^./,c=>c.toUpperCase());
+    $('#billingPlan').textContent=plan==='Legacy'?'Legacy PlateView access':`${plan} plan`;
+    $('#billingStatus').textContent=(sub.status||'inactive').replaceAll('_',' ');
+    $('#billingStatus').className=`billing-status ${['active','trialing','legacy'].includes(sub.status)?'ok':'warn'}`;
+    if(sub.current_period_end){
+      const d=new Date(sub.current_period_end);
+      $('#billingRenewal').textContent=sub.cancel_at_period_end?`Ends ${d.toLocaleDateString()}`:`Renews ${d.toLocaleDateString()}`;
+    }else $('#billingRenewal').textContent='';
+    $('#manageBillingBtn').disabled=!sub.stripe_customer_id;
+    $('#manageBillingBtn').title=sub.stripe_customer_id?'Open Stripe billing portal':'Billing portal becomes available after a Stripe checkout.';
+  }catch(e){$('#billingStatus').textContent=e.message}
+}
+$('#manageBillingBtn').onclick=async()=>{const b=$('#manageBillingBtn');b.disabled=true;b.textContent='Opening…';try{const d=await ARAPP.apiWithAuth('/api/create-portal-session',{method:'POST'});location.href=d.url}catch(e){alert(e.message);b.disabled=false;b.textContent='Manage billing'}};
+
 $('#refreshData').onclick=()=>loadRestaurants(currentRestaurant?.id);
 
 ensureAuth().catch(e=>{console.error(e);alert(e.message)});
