@@ -215,18 +215,25 @@ const ARAPP = (() => {
   }
 
   async function analytics(restaurantId){
-    if(!supabase) return {menu_view:0,dish_view:0,ar_launch:0,by_table:[]};
-    const {data,error}=await supabase.from('analytics_events').select('event_type,table_number').eq('restaurant_id',restaurantId);
+    if(!supabase) return {menu_view:0,dish_view:0,ar_launch:0,unique_sessions:0,by_table:[],by_item:[]};
+    const {data,error}=await supabase.from('analytics_events').select('event_type,table_number,menu_item_id,session_id,created_at').eq('restaurant_id',restaurantId);
     if(error) throw error;
-    const counts={menu_view:0,dish_view:0,ar_launch:0,by_table:[]},tableMap=new Map();
+    const counts={menu_view:0,dish_view:0,ar_launch:0,unique_sessions:0,by_table:[],by_item:[]},tableMap=new Map(),itemMap=new Map(),sessions=new Set();
     (data||[]).forEach(x=>{
       if(counts[x.event_type]!==undefined) counts[x.event_type]++;
+      if(x.session_id)sessions.add(x.session_id);
       if(x.table_number){
         if(!tableMap.has(x.table_number))tableMap.set(x.table_number,{table:x.table_number,menu_view:0,dish_view:0,ar_launch:0});
         const row=tableMap.get(x.table_number);if(row[x.event_type]!==undefined)row[x.event_type]++;
       }
+      if(x.menu_item_id){
+        if(!itemMap.has(x.menu_item_id))itemMap.set(x.menu_item_id,{item_id:x.menu_item_id,dish_view:0,ar_launch:0});
+        const row=itemMap.get(x.menu_item_id);if(row[x.event_type]!==undefined)row[x.event_type]++;
+      }
     });
+    counts.unique_sessions=sessions.size;
     counts.by_table=[...tableMap.values()].sort((a,b)=>a.table-b.table);
+    counts.by_item=[...itemMap.values()];
     return counts;
   }
 

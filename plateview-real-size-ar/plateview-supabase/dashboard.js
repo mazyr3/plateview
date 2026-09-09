@@ -165,7 +165,7 @@ function renderMenu(){
             ${allergenText?`<p class="menu-allergens">${allergenText}${(i.allergens||[]).length>3?' · …':''}</p>`:''}
           </div>
           <div class="menu-badges">
-            <span class="badge status ${i.available?'available':'off'}"><span class="status-dot"></span>${i.available?'Available':'Unavailable'}</span>
+            <button type="button" class="badge status quick-availability ${i.available?'available':'off'}" data-availability-id="${i.id}" title="Click to change availability"><span class="status-dot"></span>${i.available?'Available':'Unavailable'}</button>
             ${i.model_url?'<span class="badge model-ready">3D ready</span>':'<span class="badge model-missing">No 3D</span>'}
           </div>
           <button class="edit-dish-btn" type="button">Edit <span>→</span></button>
@@ -174,9 +174,10 @@ function renderMenu(){
     </section>`;
   }).join('')||'<div class="empty">No dishes found. Click “Add dish” to create your first menu item.</div>';
 
-  $$('[data-edit]').forEach(row=>row.addEventListener('click',e=>{if(e.target.closest('.reorder-controls'))return;openEditor(row.dataset.edit)}));
+  $$('[data-edit]').forEach(row=>row.addEventListener('click',e=>{if(e.target.closest('.reorder-controls')||e.target.closest('.quick-availability'))return;openEditor(row.dataset.edit)}));
   $$('.move-up').forEach(b=>b.addEventListener('click',e=>{e.stopPropagation();moveDish(b.dataset.moveId,-1)}));
   $$('.move-down').forEach(b=>b.addEventListener('click',e=>{e.stopPropagation();moveDish(b.dataset.moveId,1)}));
+  $$('.quick-availability').forEach(b=>b.addEventListener('click',async e=>{e.stopPropagation();const item=items.find(i=>i.id===b.dataset.availabilityId);if(!item)return;b.disabled=true;try{const saved=await ARAPP.saveMenuItem({...item,available:!item.available});items=items.map(i=>i.id===saved.id?saved:i);renderMenu();renderOverview()}catch(err){alert('Could not update availability: '+err.message);b.disabled=false}}));
   $$('.drag-handle').forEach(handle=>{
     handle.addEventListener('click',e=>e.stopPropagation());
     handle.addEventListener('dragstart',e=>{e.stopPropagation();e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/plain',handle.dataset.dragId);handle.closest('.menu-row')?.classList.add('dragging')});
@@ -190,6 +191,37 @@ function renderMenu(){
 }
 $('#menuSearch').oninput=renderMenu;$('#categoryFilter').onchange=renderMenu;$('#addDishBtn').onclick=()=>openEditor();
 
+function renderCategoryManager(){
+  const cats=orderedCategories(items);
+  $('#categoryManagerList').innerHTML=cats.length?cats.map((cat,index)=>{
+    const count=items.filter(i=>categoryKey(i)===cat).length;
+    return `<div class="category-manager-row" data-category-name="${cat.replaceAll('"','&quot;')}">
+      <div class="category-order-buttons"><button type="button" class="order-btn category-up" ${index===0?'disabled':''} aria-label="Move ${cat} up">↑</button><button type="button" class="order-btn category-down" ${index===cats.length-1?'disabled':''} aria-label="Move ${cat} down">↓</button></div>
+      <div class="category-manager-main"><input class="category-rename-input" value="${cat.replaceAll('"','&quot;')}" aria-label="Category name"><small>${count} ${count===1?'dish':'dishes'}</small></div>
+      <button type="button" class="btn tiny secondary rename-category-btn">Rename</button>
+    </div>`;
+  }).join(''):'<div class="empty compact-empty">Add a dish to create your first category.</div>';
+  $$('.category-up',$('#categoryManagerList')).forEach(b=>b.onclick=()=>moveCategory(b.closest('.category-manager-row').dataset.categoryName,-1));
+  $$('.category-down',$('#categoryManagerList')).forEach(b=>b.onclick=()=>moveCategory(b.closest('.category-manager-row').dataset.categoryName,1));
+  $$('.rename-category-btn',$('#categoryManagerList')).forEach(b=>b.onclick=()=>renameCategory(b.closest('.category-manager-row')));
+}
+async function moveCategory(category,direction){
+  const cats=orderedCategories(items),from=cats.indexOf(category),to=from+direction;if(from<0||to<0||to>=cats.length)return;
+  [cats[from],cats[to]]=[cats[to],cats[from]];
+  items=cats.flatMap(c=>sortedItemsInCategory(c));renderCategoryManager();renderMenu();
+  try{await persistGroupedOrder();renderCategoryManager();renderMenu()}catch(e){alert('Could not save category order: '+e.message);await loadRestaurants(currentRestaurant.id)}
+}
+async function renameCategory(row){
+  const oldName=row.dataset.categoryName,newName=row.querySelector('.category-rename-input').value.trim();
+  if(!newName||newName===oldName)return;
+  if(orderedCategories(items).some(c=>c.toLowerCase()===newName.toLowerCase()&&c!==oldName)){alert('That category already exists.');return;}
+  const affected=items.filter(i=>categoryKey(i)===oldName);if(!affected.length)return;
+  const btn=row.querySelector('.rename-category-btn');btn.disabled=true;btn.textContent='Saving…';
+  try{const saved=await Promise.all(affected.map(i=>ARAPP.saveMenuItem({...i,category:newName})));const map=new Map(saved.map(i=>[i.id,i]));items=items.map(i=>map.get(i.id)||i);renderCategoryManager();renderMenu();}
+  catch(e){alert('Could not rename category: '+e.message);btn.disabled=false;btn.textContent='Rename'}
+}
+$('#manageCategoriesBtn').onclick=()=>{renderCategoryManager();$('#categoryModal').showModal()};
+
 function translationMarkup(){
   const item=editingId?items.find(i=>i.id===editingId):null;
   const t=item?.translations?.[editLang]||{};
@@ -201,8 +233,19 @@ function persistTranslationDraft(){
   item.translations=item.translations||{};
   item.translations[editLang]={name:$('#trName').value.trim(),description:$('#trDescription').value.trim()};
 }
-function renderTranslation(){ $('#translationFields').innerHTML=translationMarkup(); $$('.lang-tab').forEach(b=>b.classList.toggle('active',b.dataset.lang===editLang)); }
+function renderTranslation(){
+  $('#translationFields').innerHTML=translationMarkup();
+  const item=editingId?items.find(i=>i.id===editingId):window.__newDraft;
+  $$('.lang-tab').forEach(b=>{const tr=item?.translations?.[b.dataset.lang]||{};b.classList.toggle('active',b.dataset.lang===editLang);b.classList.toggle('complete',!!tr.name?.trim())});
+  $('#copyEnglishBtn').classList.toggle('hidden',editLang==='en');
+}
 $$('.lang-tab').forEach(b=>b.onclick=()=>{persistTranslationDraft();editLang=b.dataset.lang;renderTranslation()});
+$('#copyEnglishBtn').onclick=()=>{
+  persistTranslationDraft();const item=editingId?items.find(i=>i.id===editingId):window.__newDraft;if(!item)return;
+  const en=item.translations?.en||{};item.translations=item.translations||{};item.translations[editLang]={name:en.name||'',description:en.description||''};renderTranslation();
+};
+function updateAllergenCount(){const n=$$('#allergenGrid input:checked').length;$('#allergenCount').textContent=`${n} selected`;}
+$('#clearAllergensBtn').onclick=()=>{$$('#allergenGrid input').forEach(x=>x.checked=false);updateAllergenCount()};
 
 function openEditor(id=null){
   editingId=id;editLang='en';pendingModel=null;pendingPhoto=null;
@@ -214,13 +257,15 @@ function openEditor(id=null){
   $('#editorTitle').textContent=id?'Edit dish':'Add dish';
   $('#dishAvailable').checked=item.available!==false;$('#dishCategory').value=item.category||'';$('#dishPrice').value=item.price||0;$('#dishWidthCm').value=item.translations?._meta?.width_cm||'';$('#dishTags').value=(item.tags||[]).join(', ');
   $('#allergenGrid').innerHTML=ARAPP.allergens.map(a=>`<label><input type="checkbox" value="${a}" ${(item.allergens||[]).includes(a)?'checked':''}> ${a}</label>`).join('');
-  $('#deleteDish').classList.toggle('hidden',!id);
+  $$('#allergenGrid input').forEach(x=>x.addEventListener('change',updateAllergenCount));updateAllergenCount();
+  $('#deleteDish').classList.toggle('hidden',!id);$('#duplicateDish').classList.toggle('hidden',!id);
   $('#editorModel').src=item.model_url||'';$('#modelEmpty').classList.toggle('hidden',!!item.model_url);
+  $('#photoPreview').innerHTML=item.photo_url?`<img src="${item.photo_url}" alt="Dish photo preview">`:'<span>No photo</span>';
   $('#assetState').textContent=item.model_url?'3D model stored in cloud.':'No 3D model uploaded yet.';
   renderTranslation();$('#dishModal').showModal();
 }
 $('#modelUpload').onchange=e=>{pendingModel=e.target.files[0]||null;if(pendingModel){const u=URL.createObjectURL(pendingModel);$('#editorModel').src=u;$('#modelEmpty').classList.add('hidden');$('#assetState').textContent=`Ready to upload: ${pendingModel.name}`}};
-$('#photoUpload').onchange=e=>{pendingPhoto=e.target.files[0]||null};
+$('#photoUpload').onchange=e=>{pendingPhoto=e.target.files[0]||null;if(pendingPhoto){const u=URL.createObjectURL(pendingPhoto);$('#photoPreview').innerHTML=`<img src="${u}" alt="Dish photo preview">`;}};
 
 async function updateCalibrationPreview(){
   const viewer=$('#editorModel');
@@ -254,6 +299,13 @@ $('#saveDish').onclick=async()=>{
     $('#dishModal').close();renderAll();
   }catch(e){alert(e.message)}
   finally{button.disabled=false;button.textContent='Save dish'}
+};
+$('#duplicateDish').onclick=async()=>{
+  if(!editingId)return;persistTranslationDraft();const source=items.find(i=>i.id===editingId);if(!source)return;
+  const copy=JSON.parse(JSON.stringify(source));delete copy.id;copy.sort_order=items.length;copy.translations=copy.translations||{};
+  ['en','nl','fr'].forEach(lang=>{if(copy.translations[lang]?.name)copy.translations[lang].name+=lang==='en'?' (copy)':' (copy)'});
+  const btn=$('#duplicateDish');btn.disabled=true;btn.textContent='Duplicating…';
+  try{const saved=await ARAPP.saveMenuItem(copy);items.push(saved);$('#dishModal').close();renderAll();openEditor(saved.id)}catch(e){alert(e.message)}finally{btn.disabled=false;btn.textContent='Duplicate'}
 };
 $('#deleteDish').onclick=async()=>{if(!editingId)return;if(confirm('Delete this dish?')){try{await ARAPP.deleteMenuItem(editingId);items=items.filter(x=>x.id!==editingId);$('#dishModal').close();renderAll()}catch(e){alert(e.message)}}};
 
@@ -292,14 +344,24 @@ $('#printAllQrBtn').onclick=()=>{
 async function renderAnalytics(){
   if(!currentRestaurant)return;
   try{
-    const a=await ARAPP.analytics(currentRestaurant.id),vals=[['Menu views',a.menu_view],['Dish opens',a.dish_view],['AR launches',a.ar_launch]];
+    const a=await ARAPP.analytics(currentRestaurant.id);
+    const conversion=a.dish_view?Math.round((a.ar_launch/a.dish_view)*100):0;
+    const unique=a.unique_sessions||0;
+    const vals=[['Menu views',a.menu_view],['Dish opens',a.dish_view],['AR launches',a.ar_launch],['Dish → AR',`${conversion}%`]];
     $('#analyticsStats').innerHTML=vals.map(([l,v])=>stat(l,v)).join('');
-    const max=Math.max(1,...vals.map(v=>v[1]));
-    $('#funnel').innerHTML=vals.map(([l,v])=>`<div class="funnel-row"><span>${l}</span><div class="bar"><span style="width:${Math.max(3,v/max*100)}%"></span></div><b>${v}</b></div>`).join('');
+    $('#conversionLabel').textContent=`${conversion}% of dish opens launch AR`;
+    const funnelVals=[['Menu views',a.menu_view],['Dish opens',a.dish_view],['AR launches',a.ar_launch]];
+    const max=Math.max(1,...funnelVals.map(v=>v[1]));
+    $('#funnel').innerHTML=funnelVals.map(([l,v],idx)=>{const prev=idx?funnelVals[idx-1][1]:null;const rate=prev?Math.round(v/prev*100):100;return `<div class="funnel-row"><span>${l}${idx?` <small>${rate}%</small>`:''}</span><div class="bar"><span style="width:${Math.max(v?3:0,v/max*100)}%"></span></div><b>${v}</b></div>`}).join('')+`<p class="analytics-note">${unique} unique menu ${unique===1?'session':'sessions'} recorded.</p>`;
+    const nameFor=id=>tItem(items.find(i=>i.id===id)||{}).name||'Deleted dish';
+    const ranking=(rows,type)=>rows.length?rows.slice(0,6).map((row,index)=>`<div class="ranking-row"><span class="rank">${index+1}</span><div><b>${nameFor(row.item_id)}</b><small>${type==='ar'?`${row.ar_launch} AR launches`:`${row.dish_view} opens`}</small></div><strong>${type==='ar'?row.ar_launch:row.dish_view}</strong></div>`).join(''):'<div class="empty compact-empty">No activity recorded yet.</div>';
+    $('#topDishAnalytics').innerHTML=ranking((a.by_item||[]).filter(x=>x.dish_view).sort((x,y)=>y.dish_view-x.dish_view),'dish');
+    $('#topArAnalytics').innerHTML=ranking((a.by_item||[]).filter(x=>x.ar_launch).sort((x,y)=>y.ar_launch-x.ar_launch),'ar');
     const byTable=a.by_table||[];
-    $('#tableAnalytics').innerHTML=byTable.length?byTable.map(row=>`<div class="table-analytics-row"><b>Table ${row.table}</b><span>${row.menu_view} views</span><span>${row.dish_view} dish opens</span><span>${row.ar_launch} AR</span></div>`).join(''):'<div class="empty compact-empty">No table scans recorded yet.</div>';
+    $('#tableAnalytics').innerHTML=byTable.length?byTable.map(row=>`<div class="table-analytics-row"><b>Table ${row.table}</b><span>${row.menu_view} views</span><span>${row.dish_view} opens</span><span>${row.ar_launch} AR</span></div>`).join(''):'<div class="empty compact-empty">No table scans recorded yet.</div>';
   }catch(e){$('#analyticsStats').innerHTML=`<div class="empty">${e.message}</div>`}
 }
+
 function previewBrandAssets(){
   const name=currentRestaurant?.name||'Restaurant';
   const logoUrl=pendingLogo?URL.createObjectURL(pendingLogo):(removeLogoRequested?'':currentRestaurant?.logo_url||'');
