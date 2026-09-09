@@ -98,12 +98,16 @@ function sortedItemsInCategory(category,source=items){
   return source.filter(i=>categoryKey(i)===category).sort((a,b)=>(Number(a.sort_order)||0)-(Number(b.sort_order)||0));
 }
 async function persistGroupedOrder(){
-  const categories=orderedCategories(items);
-  const flattened=categories.flatMap(c=>sortedItemsInCategory(c,items));
+  // `items` is already in the exact order chosen by the owner.
+  // Do not sort it again here, otherwise the old sort_order values undo the move.
   const changed=[];
-  flattened.forEach((item,index)=>{if(Number(item.sort_order)!==index){item.sort_order=index;changed.push(item)}});
+  items.forEach((item,index)=>{
+    if(Number(item.sort_order)!==index){
+      item.sort_order=index;
+      changed.push(item);
+    }
+  });
   if(changed.length) await Promise.all(changed.map(item=>ARAPP.saveMenuItem(item)));
-  items=flattened;
 }
 async function moveDish(id,direction){
   const item=items.find(i=>i.id===id);if(!item)return;
