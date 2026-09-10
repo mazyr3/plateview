@@ -84,30 +84,96 @@ function setHero(){
   const i=heroItem();
   if(i){viewer.src=i.model_url||'';gate.classList.remove('hidden');}
 }
+let categoryScrollRaf=0;
+let categoryScrollLockUntil=0;
+function menuCategories(){return [...new Set(items.filter(i=>i.published).map(i=>i.category||'Other'))]}
+function setActiveCategory(category,bringIntoView=true){
+  activeCategory=category;
+  const buttons=$$('.filter-btn');
+  buttons.forEach(b=>b.classList.toggle('active',b.dataset.cat===category));
+  if(bringIntoView){
+    const active=buttons.find(b=>b.dataset.cat===category);
+    active?.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'});
+  }
+}
+function categoryStickyOffset(){
+  const topbar=$('.topbar')?.getBoundingClientRect().height||0;
+  const filters=$('.filter-wrap')?.getBoundingClientRect().height||0;
+  return topbar+filters+14;
+}
+function scrollToMenuCategory(category){
+  categoryScrollLockUntil=Date.now()+650;
+  setActiveCategory(category,true);
+  let target;
+  if(category==='All') target=$('#menuGrid');
+  else target=$$('.category-section').find(s=>s.dataset.category===category);
+  if(!target)return;
+  const y=target.getBoundingClientRect().top+window.scrollY-categoryStickyOffset();
+  window.scrollTo({top:Math.max(0,y),behavior:'smooth'});
+}
+function updateActiveCategoryFromScroll(){
+  categoryScrollRaf=0;
+  if(Date.now()<categoryScrollLockUntil)return;
+  const sections=$$('.category-section');
+  if(!sections.length)return;
+  const line=categoryStickyOffset()+20;
+  let current='All';
+  for(const section of sections){
+    if(section.getBoundingClientRect().top<=line)current=section.dataset.category;
+    else break;
+  }
+  const firstTop=sections[0].getBoundingClientRect().top;
+  if(firstTop>line+35)current='All';
+  if(current!==activeCategory)setActiveCategory(current,true);
+}
+function bindCategoryScrollSpy(){
+  if(window.__platecropCategoryScrollSpy)return;
+  window.__platecropCategoryScrollSpy=true;
+  window.addEventListener('scroll',()=>{
+    if(categoryScrollRaf)return;
+    categoryScrollRaf=requestAnimationFrame(updateActiveCategoryFromScroll);
+  },{passive:true});
+  window.addEventListener('resize',()=>{
+    if(categoryScrollRaf)return;
+    categoryScrollRaf=requestAnimationFrame(updateActiveCategoryFromScroll);
+  });
+}
 function renderFilters(){
-  const cats=['All',...new Set(items.filter(i=>i.published).map(i=>i.category).filter(Boolean))];
+  const cats=['All',...menuCategories()];
   $('#filters').innerHTML=cats.map((c,idx)=>`<button class="filter-btn ${activeCategory===c?'active':''}" data-cat="${esc(c)}">${idx===0?ui[lang].all:esc(c)}</button>`).join('');
-  $$('.filter-btn').forEach(b=>b.onclick=()=>{activeCategory=b.dataset.cat;$$('.filter-btn').forEach(x=>x.classList.toggle('active',x===b));b.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'});renderMenu();if(window.matchMedia('(max-width:700px)').matches){$('#menuGrid')?.scrollIntoView({behavior:'smooth',block:'start'})}});
+  $$('.filter-btn').forEach(b=>b.onclick=()=>scrollToMenuCategory(b.dataset.cat));
+  bindCategoryScrollSpy();
+}
+function dishCardMarkup(i){
+  const t=tItem(i);
+  const cardVisual=resolvedDishVisual(i,'card');
+  const visual=cardVisual==='3d'
+    ? `<model-viewer src="${esc(i.model_url)}" camera-orbit="25deg 70deg auto" field-of-view="30deg" auto-rotate interaction-prompt="none" shadow-intensity="1" environment-image="neutral"></model-viewer>`
+    : (cardVisual==='photo'?`<img src="${esc(i.photo_url)}" alt="${esc(t.name)}">`:'<div class="empty-visual">No preview</div>');
+  const hasAr=!!i.model_url;
+  return `<article class="menu-card ${i.available?'':'unavailable'}" data-id="${i.id}" tabindex="0" aria-label="${esc(t.name)}">
+    <div class="model-preview">${visual}${hasAr?`<span class="view-pill">↻ ${ui[lang].view3d}</span>`:''}</div>
+    <div class="card-copy">
+      <div class="card-top"><h3>${esc(t.name)}</h3><span class="price">${ARAPP.money(i.price,restaurant.currency)}</span></div>
+      ${t.description?`<p>${esc(t.description)}</p>`:''}
+      <div class="tags">${(i.tags||[]).slice(0,2).map(x=>`<span class="tag">${esc(x)}</span>`).join('')}${!i.available?`<span class="tag warning">${ui[lang].unavailable}</span>`:''}</div>
+    </div>
+  </article>`;
 }
 function renderMenu(){
-  const list=items.filter(i=>i.published&&(activeCategory==='All'||i.category===activeCategory));
-  $('#menuGrid').innerHTML=list.map(i=>{
-    const t=tItem(i);
-    const cardVisual=resolvedDishVisual(i,'card');
-    const visual=cardVisual==='3d'
-      ? `<model-viewer src="${esc(i.model_url)}" camera-orbit="25deg 70deg auto" field-of-view="30deg" auto-rotate interaction-prompt="none" shadow-intensity="1" environment-image="neutral"></model-viewer>`
-      : (cardVisual==='photo'?`<img src="${esc(i.photo_url)}" alt="${esc(t.name)}">`:'<div class="empty-visual">No preview</div>');
-    const hasAr=!!i.model_url;
-    return `<article class="menu-card ${i.available?'':'unavailable'}" data-id="${i.id}" tabindex="0" aria-label="${esc(t.name)}">
-      <div class="model-preview">${visual}${hasAr?`<span class="view-pill">↻ ${ui[lang].view3d}</span>`:''}</div>
-      <div class="card-copy">
-        <div class="card-top"><h3>${esc(t.name)}</h3><span class="price">${ARAPP.money(i.price,restaurant.currency)}</span></div>
-        ${t.description?`<p>${esc(t.description)}</p>`:''}
-        <div class="tags">${(i.tags||[]).slice(0,2).map(x=>`<span class="tag">${esc(x)}</span>`).join('')}${!i.available?`<span class="tag warning">${ui[lang].unavailable}</span>`:''}</div>
-      </div>
-    </article>`;
-  }).join('')||'<div class="menu-empty">No dishes in this category yet.</div>';
+  const visible=items.filter(i=>i.published);
+  const categories=menuCategories();
+  const menu=$('#menuGrid');
+  if(!visible.length){menu.innerHTML='<div class="menu-empty">No dishes are currently available on this menu.</div>';return;}
+  menu.innerHTML=categories.map((category,index)=>{
+    const group=visible.filter(i=>(i.category||'Other')===category);
+    return `<section class="category-section" data-category="${esc(category)}" data-category-index="${index}">
+      <header class="category-heading"><div><span class="category-kicker">${String(index+1).padStart(2,'0')}</span><h2>${esc(category)}</h2></div><span class="category-count">${group.length} ${group.length===1?'item':'items'}</span></header>
+      <div class="category-grid">${group.map(dishCardMarkup).join('')}</div>
+    </section>`;
+  }).join('');
   $$('.menu-card').forEach(c=>{const fn=()=>openDish(c.dataset.id);c.onclick=fn;c.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();fn()}}});
+  requestAnimationFrame(updateActiveCategoryFromScroll);
 }
 function targetWidthCm(item){return Number(item?.translations?._meta?.width_cm)||0}
 function showcaseScalePercent(item){
