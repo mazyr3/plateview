@@ -288,7 +288,7 @@ function openEditor(id=null){
     window.__newDraft=item;
   } else window.__newDraft=null;
   $('#editorTitle').textContent=id?'Edit dish':'Add dish';
-  $('#dishVisible').checked=item.published!==false;$('#dishAvailable').checked=item.available!==false;$('#dishCategory').value=item.category||'';$('#dishPrice').value=item.price||0;$('#dishWidthCm').value=item.translations?._meta?.width_cm||'';$('#dishTags').value=(item.tags||[]).join(', ');
+  $('#dishVisible').checked=item.published!==false;$('#dishAvailable').checked=item.available!==false;$('#dishCategory').value=item.category||'';$('#dishPrice').value=item.price||0;$('#dishWidthCm').value=item.translations?._meta?.width_cm||'';$('#dishShowcaseScale').value=item.translations?._meta?.showcase_scale||100;$('#dishTags').value=(item.tags||[]).join(', ');
   $('#dishCardVisual').value=item.translations?._meta?.card_visual||'auto';
   $('#dishDetailVisual').value=item.translations?._meta?.detail_visual||'auto';
   $('#allergenGrid').innerHTML=ARAPP.allergens.map(a=>`<label><input type="checkbox" value="${a}" ${(item.allergens||[]).includes(a)?'checked':''}> ${a}</label>`).join('');
@@ -302,8 +302,17 @@ function openEditor(id=null){
 $('#modelUpload').onchange=e=>{pendingModel=e.target.files[0]||null;if(pendingModel){const u=URL.createObjectURL(pendingModel);$('#editorModel').src=u;$('#modelEmpty').classList.add('hidden');$('#assetState').textContent=`Ready to upload: ${pendingModel.name}`}};
 $('#photoUpload').onchange=e=>{pendingPhoto=e.target.files[0]||null;if(pendingPhoto){const u=URL.createObjectURL(pendingPhoto);$('#photoPreview').innerHTML=`<img src="${u}" alt="Dish photo preview">`;}};
 
+function applyEditorShowcaseScale(){
+  const viewer=$('#editorModel');
+  if(!viewer)return;
+  const pct=Math.max(40,Math.min(250,Number($('#dishShowcaseScale').value)||100));
+  const factor=pct/100;
+  viewer.scale=`${factor} ${factor} ${factor}`;
+  viewer.setAttribute('scale',`${factor} ${factor} ${factor}`);
+}
 async function updateCalibrationPreview(){
   const viewer=$('#editorModel');
+  applyEditorShowcaseScale();
   if(!viewer?.src)return;
   try{
     const d=viewer.getDimensions();
@@ -319,6 +328,7 @@ async function updateCalibrationPreview(){
 }
 $('#editorModel').addEventListener('load',updateCalibrationPreview);
 $('#dishWidthCm').addEventListener('input',updateCalibrationPreview);
+$('#dishShowcaseScale').addEventListener('input',applyEditorShowcaseScale);
 
 $('#saveDish').onclick=async()=>{
   const button=$('#saveDish');button.disabled=true;button.textContent='Saving…';
@@ -326,6 +336,7 @@ $('#saveDish').onclick=async()=>{
     persistTranslationDraft();
     const item=editingId?{...items.find(i=>i.id===editingId)}:{...window.__newDraft};
     item.restaurant_id=currentRestaurant.id;item.available=$('#dishAvailable').checked;item.published=$('#dishVisible').checked;item.category=$('#dishCategory').value.trim();item.price=Number($('#dishPrice').value)||0;item.tags=$('#dishTags').value.split(',').map(x=>x.trim()).filter(Boolean);item.allergens=$$('#allergenGrid input:checked').map(x=>x.value);item.translations=item.translations||{};item.translations._meta=item.translations._meta||{};const widthCm=Number($('#dishWidthCm').value);if(widthCm>0)item.translations._meta.width_cm=widthCm;else delete item.translations._meta.width_cm;
+    const showcaseScale=Math.max(40,Math.min(250,Number($('#dishShowcaseScale').value)||100));item.translations._meta.showcase_scale=showcaseScale;
     item.translations._meta.card_visual=$('#dishCardVisual').value||'auto';
     item.translations._meta.detail_visual=$('#dishDetailVisual').value||'auto';
     if(!item.translations?.en?.name){alert('Please add an English dish name.');return;}

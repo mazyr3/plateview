@@ -110,6 +110,16 @@ function renderMenu(){
   $$('.menu-card').forEach(c=>{const fn=()=>openDish(c.dataset.id);c.onclick=fn;c.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();fn()}}});
 }
 function targetWidthCm(item){return Number(item?.translations?._meta?.width_cm)||0}
+function showcaseScalePercent(item){
+  const raw=Number(item?.translations?._meta?.showcase_scale)||100;
+  return Math.max(40,Math.min(250,raw));
+}
+function applyShowcaseScale(viewer,item){
+  if(!viewer)return;
+  const factor=showcaseScalePercent(item)/100;
+  viewer.scale=`${factor} ${factor} ${factor}`;
+  viewer.setAttribute('scale',`${factor} ${factor} ${factor}`);
+}
 function applyRealScale(viewer,item){
   const targetCm=targetWidthCm(item);
   if(!viewer||!targetCm)return;
@@ -139,7 +149,7 @@ function openDish(id){
   resetViewerInteraction('dishViewer');
   const t=tItem(activeDish), viewer=$('#dishViewer'), photo=$('#dishPhoto'), wrap=$('#dishViewerWrap');
   const detailVisual=resolvedDishVisual(activeDish,'detail');
-  viewer.scale='1 1 1';viewer.setAttribute('scale','1 1 1');viewer.src=activeDish.model_url||'';
+  viewer.scale='1 1 1';viewer.setAttribute('scale','1 1 1');viewer.src=activeDish.model_url||'';applyShowcaseScale(viewer,activeDish);
   if(photo){
     photo.src=activeDish.photo_url||'';
     photo.alt=t.name||'Dish photo';
@@ -163,12 +173,15 @@ function openDish(id){
 }
 async function launchAR(){
   if(!activeDish?.model_url){alert('This dish does not have a 3D model yet.');return;}
-  const button=$('#mobileArTrigger'); button.classList.add('loading');
+  const button=$('#mobileArTrigger'), viewer=$('#dishViewer'); button.classList.add('loading');
   try{
+    // The normal 3D preview has its own visual scale. Only switch to the
+    // real-world calibration immediately before entering camera AR.
+    applyRealScale(viewer,activeDish);
     await ARAPP.track(restaurant.id,'ar_launch',activeDish.id,params.get('table'));
-    await $('#dishViewer').activateAR();
+    await viewer.activateAR();
   }catch(e){alert('AR could not start. Try opening PlateCrop in Chrome on Android or Safari on iPhone.');}
-  finally{button.classList.remove('loading')}
+  finally{applyShowcaseScale(viewer,activeDish);button.classList.remove('loading')}
 }
 function closeDish(){if($('#dishDialog').open)$('#dishDialog').close();document.body.classList.remove('dialog-open')}
 async function boot(){
@@ -186,7 +199,9 @@ $('#dishDialog').addEventListener('click',e=>{if(e.target===$('#dishDialog'))clo
 $('#dishDialog').addEventListener('close',()=>document.body.classList.remove('dialog-open'));
 $('#demoArBtn').onclick=()=>{const i=heroItem()||items.find(x=>x.available&&x.model_url);if(i)openDish(i.id)};
 $('#mobileArTrigger').onclick=launchAR;
-$('#dishViewer').addEventListener('load',()=>{if(activeDish){applyRealScale($('#dishViewer'),activeDish);updateArCapability()}});
-$('#arSlotBtn').onclick=()=>{if(activeDish)ARAPP.track(restaurant.id,'ar_launch',activeDish.id,params.get('table'))};
+$('#dishViewer').addEventListener('load',()=>{if(activeDish){applyShowcaseScale($('#dishViewer'),activeDish);updateArCapability()}});
+$('#arSlotBtn').onclick=()=>{if(activeDish){applyRealScale($('#dishViewer'),activeDish);ARAPP.track(restaurant.id,'ar_launch',activeDish.id,params.get('table'))}};
+$('#dishViewer').addEventListener('ar-status',e=>{if(activeDish&&['not-presenting','failed'].includes(e.detail?.status))applyShowcaseScale($('#dishViewer'),activeDish)});
+
 $('#langSelect').onchange=()=>{lang=$('#langSelect').value;activeCategory='All';applyBrand();renderFilters();renderMenu()};
 boot().catch(e=>{console.error(e);document.body.innerHTML=`<main style="padding:10vw;font-family:system-ui"><h1>Could not load menu</h1><p>${esc(e.message)}</p></main>`});
