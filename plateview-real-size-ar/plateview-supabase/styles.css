@@ -62,3 +62,46 @@ body[data-template=gallery] .hero{grid-template-columns:1fr;gap:26px;padding-top
 .viewer-wrap.empty-mode .dish-detail-empty{display:grid}
 
 body[data-template=compact] .category-section+.category-section{border-top:8px solid color-mix(in srgb,var(--ink) 7%,transparent);padding-top:34px}body[data-template=compact] .category-heading h2{font-family:Arial,sans-serif;font-weight:800;letter-spacing:-.03em}
+
+
+/* Template-aware category grids
+   The scrolling category layout uses .category-grid, so these rules keep the
+   original template column behavior after the sticky-category upgrade. */
+body[data-template=compact] .category-grid{
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:10px;
+}
+body[data-template=gallery] .category-grid{
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:22px;
+}
+
+@media(max-width:1100px){
+  body[data-template=compact] .category-grid{
+    grid-template-columns:repeat(3,minmax(0,1fr));
+  }
+}
+@media(max-width:800px){
+  body[data-template=compact] .category-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+}
+@media(max-width:700px){
+  /* Gallery intentionally stays two-up on phones. */
+  body[data-template=gallery] .category-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:9px;
+  }
+
+  /* Compact remains the dense horizontal-row template. */
+  body[data-template=compact] .category-grid{
+    grid-template-columns:1fr;
+    gap:8px;
+  }
+}
+@media(max-width:340px){
+  /* Only collapse Gallery on exceptionally narrow screens. */
+  body[data-template=gallery] .category-grid{
+    grid-template-columns:1fr;
+  }
+}
