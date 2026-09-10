@@ -117,3 +117,8 @@
 @media(max-width:700px){
   .editor-status-toggles{width:100%;justify-content:flex-start;gap:14px;margin-top:10px}
 }
+
+
+/* Mobile column-choice preview */
+.theme-preview[data-preview-columns="1"] .theme-preview-products{grid-template-columns:1fr}
+.theme-preview[data-preview-columns="2"] .theme-preview-products{grid-template-columns:1fr 1fr}

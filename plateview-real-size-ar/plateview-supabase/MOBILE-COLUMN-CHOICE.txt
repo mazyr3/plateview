@@ -1,0 +1,8 @@
+PlateCrop — selectable mobile menu columns
+
+Dashboard > Settings > Menu Design > Layout & behavior now includes:
+- 1 dish per row
+- 2 dishes side by side
+
+The choice is stored per restaurant in menu_theme.mobile_columns.
+No Supabase SQL change is required.

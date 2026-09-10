@@ -105,3 +105,40 @@ body[data-template=gallery] .category-grid{
     grid-template-columns:1fr;
   }
 }
+
+
+/* Restaurant-selectable mobile column count */
+@media(max-width:700px){
+  body[data-mobile-columns="1"] .category-grid{
+    grid-template-columns:1fr!important;
+    gap:12px;
+  }
+  body[data-mobile-columns="2"] .category-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    gap:9px;
+  }
+  body[data-mobile-columns="2"] .menu-card{
+    display:block;
+    min-height:0;
+  }
+  body[data-mobile-columns="2"] .model-preview{
+    height:180px;
+    min-height:180px;
+  }
+  body[data-mobile-columns="2"] .card-copy{
+    padding:12px;
+  }
+  body[data-mobile-columns="2"] .card-copy h3{
+    font-size:18px;
+  }
+  body[data-mobile-columns="2"] .card-copy p{
+    display:none;
+  }
+  body[data-mobile-columns="2"] .card-top{
+    display:block;
+  }
+  body[data-mobile-columns="2"] .price{
+    display:block;
+    margin-top:5px;
+  }
+}
