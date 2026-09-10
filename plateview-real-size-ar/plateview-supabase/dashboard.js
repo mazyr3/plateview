@@ -197,6 +197,7 @@ function renderMenu(){
             ${allergenText?`<p class="menu-allergens">${allergenText}${(i.allergens||[]).length>3?' · …':''}</p>`:''}
           </div>
           <div class="menu-badges">
+            ${i.published===false?'<span class="badge hidden-dish-badge">Hidden</span>':''}
             <button type="button" class="badge status quick-availability ${i.available?'available':'off'}" data-availability-id="${i.id}" title="Click to change availability"><span class="status-dot"></span>${i.available?'Available':'Unavailable'}</button>
             ${i.model_url?'<span class="badge model-ready">3D ready</span>':'<span class="badge model-missing">No 3D</span>'}
           </div>
@@ -287,7 +288,7 @@ function openEditor(id=null){
     window.__newDraft=item;
   } else window.__newDraft=null;
   $('#editorTitle').textContent=id?'Edit dish':'Add dish';
-  $('#dishAvailable').checked=item.available!==false;$('#dishCategory').value=item.category||'';$('#dishPrice').value=item.price||0;$('#dishWidthCm').value=item.translations?._meta?.width_cm||'';$('#dishTags').value=(item.tags||[]).join(', ');
+  $('#dishVisible').checked=item.published!==false;$('#dishAvailable').checked=item.available!==false;$('#dishCategory').value=item.category||'';$('#dishPrice').value=item.price||0;$('#dishWidthCm').value=item.translations?._meta?.width_cm||'';$('#dishTags').value=(item.tags||[]).join(', ');
   $('#dishCardVisual').value=item.translations?._meta?.card_visual||'auto';
   $('#dishDetailVisual').value=item.translations?._meta?.detail_visual||'auto';
   $('#allergenGrid').innerHTML=ARAPP.allergens.map(a=>`<label><input type="checkbox" value="${a}" ${(item.allergens||[]).includes(a)?'checked':''}> ${a}</label>`).join('');
@@ -324,7 +325,7 @@ $('#saveDish').onclick=async()=>{
   try{
     persistTranslationDraft();
     const item=editingId?{...items.find(i=>i.id===editingId)}:{...window.__newDraft};
-    item.restaurant_id=currentRestaurant.id;item.available=$('#dishAvailable').checked;item.published=true;item.category=$('#dishCategory').value.trim();item.price=Number($('#dishPrice').value)||0;item.tags=$('#dishTags').value.split(',').map(x=>x.trim()).filter(Boolean);item.allergens=$$('#allergenGrid input:checked').map(x=>x.value);item.translations=item.translations||{};item.translations._meta=item.translations._meta||{};const widthCm=Number($('#dishWidthCm').value);if(widthCm>0)item.translations._meta.width_cm=widthCm;else delete item.translations._meta.width_cm;
+    item.restaurant_id=currentRestaurant.id;item.available=$('#dishAvailable').checked;item.published=$('#dishVisible').checked;item.category=$('#dishCategory').value.trim();item.price=Number($('#dishPrice').value)||0;item.tags=$('#dishTags').value.split(',').map(x=>x.trim()).filter(Boolean);item.allergens=$$('#allergenGrid input:checked').map(x=>x.value);item.translations=item.translations||{};item.translations._meta=item.translations._meta||{};const widthCm=Number($('#dishWidthCm').value);if(widthCm>0)item.translations._meta.width_cm=widthCm;else delete item.translations._meta.width_cm;
     item.translations._meta.card_visual=$('#dishCardVisual').value||'auto';
     item.translations._meta.detail_visual=$('#dishDetailVisual').value||'auto';
     if(!item.translations?.en?.name){alert('Please add an English dish name.');return;}

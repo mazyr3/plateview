@@ -1,0 +1,11 @@
+PlateCrop — hide individual dishes
+
+A new "Visible on menu" toggle has been added to each dish.
+
+- ON: the dish appears on the public guest menu.
+- OFF: the dish is completely hidden from the public guest menu.
+- The dish remains saved in the dashboard and can be re-enabled later.
+- "Available" remains separate. This lets you keep a sold-out/unavailable dish visible without deleting it.
+- Hidden dishes show a "Hidden" badge in the dashboard so you can identify them easily.
+
+No Supabase SQL change is required because this uses the existing menu_items.published field.

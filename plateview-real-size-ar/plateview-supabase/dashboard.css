@@ -110,3 +110,10 @@
 .dish-visual-settings select{width:100%;padding:10px 11px;border:1px solid var(--line,#ddd5c7);border-radius:10px;background:#fff;color:inherit;font:inherit}
 .dish-visual-settings label small,.display-fallback-note{font-weight:400;color:var(--muted,#777);line-height:1.4}
 .display-fallback-note{display:block;padding-top:2px}
+
+/* Per-dish visibility */
+.editor-status-toggles{display:flex;align-items:center;gap:18px;flex-wrap:wrap;justify-content:flex-end}
+.hidden-dish-badge{background:#eee9e1;color:#6d655b;border:1px solid #d8d0c4}
+@media(max-width:700px){
+  .editor-status-toggles{width:100%;justify-content:flex-start;gap:14px;margin-top:10px}
+}
