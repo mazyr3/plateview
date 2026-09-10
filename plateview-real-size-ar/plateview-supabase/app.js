@@ -38,6 +38,18 @@ function setupViewerGates(){
 
 function tItem(i){return i.translations?.[lang]||i.translations?.en||{name:'Dish',description:''}}
 function esc(v=''){return String(v).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+function dishVisualPreference(item,place='card'){
+  const meta=item?.translations?._meta||{};
+  return place==='detail'?(meta.detail_visual||'auto'):(meta.card_visual||'auto');
+}
+function resolvedDishVisual(item,place='card'){
+  const pref=dishVisualPreference(item,place);
+  if(pref==='photo'&&item?.photo_url)return 'photo';
+  if(pref==='3d'&&item?.model_url)return '3d';
+  if(item?.model_url)return '3d';
+  if(item?.photo_url)return 'photo';
+  return 'none';
+}
 function applyBrand(){
   document.documentElement.style.setProperty('--accent',restaurant.accent||'#b7482d');
   $('#restaurantName').textContent=restaurant.name;
@@ -81,9 +93,10 @@ function renderMenu(){
   const list=items.filter(i=>i.published&&(activeCategory==='All'||i.category===activeCategory));
   $('#menuGrid').innerHTML=list.map(i=>{
     const t=tItem(i);
-    const visual=i.model_url
+    const cardVisual=resolvedDishVisual(i,'card');
+    const visual=cardVisual==='3d'
       ? `<model-viewer src="${esc(i.model_url)}" camera-orbit="25deg 70deg auto" field-of-view="30deg" auto-rotate interaction-prompt="none" shadow-intensity="1" environment-image="neutral"></model-viewer>`
-      : (i.photo_url?`<img src="${esc(i.photo_url)}" alt="${esc(t.name)}">`:'<div class="empty-visual">No preview</div>');
+      : (cardVisual==='photo'?`<img src="${esc(i.photo_url)}" alt="${esc(t.name)}">`:'<div class="empty-visual">No preview</div>');
     const hasAr=!!i.model_url;
     return `<article class="menu-card ${i.available?'':'unavailable'}" data-id="${i.id}" tabindex="0" aria-label="${esc(t.name)}">
       <div class="model-preview">${visual}${hasAr?`<span class="view-pill">↻ ${ui[lang].view3d}</span>`:''}</div>
@@ -124,8 +137,19 @@ function updateArCapability(){
 function openDish(id){
   activeDish=items.find(i=>i.id===id); if(!activeDish)return;
   resetViewerInteraction('dishViewer');
-  const t=tItem(activeDish), viewer=$('#dishViewer');
+  const t=tItem(activeDish), viewer=$('#dishViewer'), photo=$('#dishPhoto'), wrap=$('#dishViewerWrap');
+  const detailVisual=resolvedDishVisual(activeDish,'detail');
   viewer.scale='1 1 1';viewer.setAttribute('scale','1 1 1');viewer.src=activeDish.model_url||'';
+  if(photo){
+    photo.src=activeDish.photo_url||'';
+    photo.alt=t.name||'Dish photo';
+  }
+  wrap?.classList.toggle('photo-mode',detailVisual==='photo');
+  wrap?.classList.toggle('empty-mode',detailVisual==='none');
+  const gate=wrap?.querySelector('.viewer-activation');
+  const lock=wrap?.querySelector('.viewer-lock');
+  if(gate)gate.classList.toggle('hidden',detailVisual!=='3d');
+  if(lock&&detailVisual!=='3d')lock.classList.add('hidden');
   $('#arSizeNote').textContent=targetWidthCm(activeDish)?`Calibrating to ${targetWidthCm(activeDish)} cm wide…`:'Real-size calibration not set';
   $('#dialogCategory').textContent=activeDish.category||'';
   $('#dialogAvailability').textContent=activeDish.available?'':ui[lang].unavailable;

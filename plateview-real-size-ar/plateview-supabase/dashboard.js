@@ -16,6 +16,15 @@ function setThemeControls(theme){theme=normalizedTheme(theme);$$('.template-card
 function msg(text){$('#authMessage').textContent=text||''}
 function stat(label,value){return `<article class="stat"><small>${label}</small><strong>${value}</strong></article>`}
 function tItem(i,l='en'){return i.translations?.[l]||i.translations?.en||{name:'Unnamed dish',description:''}}
+function dishDisplayMode(item,place='card'){
+  const meta=item?.translations?._meta||{};
+  const pref=place==='detail'?(meta.detail_visual||'auto'):(meta.card_visual||'auto');
+  if(pref==='photo'&&item?.photo_url)return 'photo';
+  if(pref==='3d'&&item?.model_url)return '3d';
+  if(item?.model_url)return '3d';
+  if(item?.photo_url)return 'photo';
+  return 'none';
+}
 function liveUrl(table){return `menu.html?r=${encodeURIComponent(currentRestaurant.slug)}${table?`&table=${table}`:''}`}
 function setView(name){
   $$('.view').forEach(v=>v.classList.toggle('active',v.id===`view-${name}`));
@@ -170,9 +179,10 @@ function renderMenu(){
       <div class="category-dishes">${group.map((i,index)=>{
         const t=tItem(i);
         const allergenText=(i.allergens||[]).slice(0,3).join(' · ');
-        const visual=i.model_url
+        const dashboardVisual=dishDisplayMode(i,'card');
+        const visual=dashboardVisual==='3d'
           ? `<model-viewer src="${i.model_url}" auto-rotate interaction-prompt="none" camera-controls shadow-intensity="1" environment-image="neutral"></model-viewer>`
-          : (i.photo_url ? `<img src="${i.photo_url}" alt="${t.name}">` : `<span class="thumb-empty">No preview</span>`);
+          : (dashboardVisual==='photo' ? `<img src="${i.photo_url}" alt="${t.name}">` : `<span class="thumb-empty">No preview</span>`);
         return `<article class="menu-row" data-edit="${i.id}" data-order-id="${i.id}">
           <div class="reorder-controls" aria-label="Reorder ${t.name}">
             <button class="drag-handle" type="button" draggable="true" data-drag-id="${i.id}" title="Drag to reorder" aria-label="Drag ${t.name} to reorder">⋮⋮</button>
@@ -278,6 +288,8 @@ function openEditor(id=null){
   } else window.__newDraft=null;
   $('#editorTitle').textContent=id?'Edit dish':'Add dish';
   $('#dishAvailable').checked=item.available!==false;$('#dishCategory').value=item.category||'';$('#dishPrice').value=item.price||0;$('#dishWidthCm').value=item.translations?._meta?.width_cm||'';$('#dishTags').value=(item.tags||[]).join(', ');
+  $('#dishCardVisual').value=item.translations?._meta?.card_visual||'auto';
+  $('#dishDetailVisual').value=item.translations?._meta?.detail_visual||'auto';
   $('#allergenGrid').innerHTML=ARAPP.allergens.map(a=>`<label><input type="checkbox" value="${a}" ${(item.allergens||[]).includes(a)?'checked':''}> ${a}</label>`).join('');
   $$('#allergenGrid input').forEach(x=>x.addEventListener('change',updateAllergenCount));updateAllergenCount();
   $('#deleteDish').classList.toggle('hidden',!id);$('#duplicateDish').classList.toggle('hidden',!id);
@@ -313,6 +325,8 @@ $('#saveDish').onclick=async()=>{
     persistTranslationDraft();
     const item=editingId?{...items.find(i=>i.id===editingId)}:{...window.__newDraft};
     item.restaurant_id=currentRestaurant.id;item.available=$('#dishAvailable').checked;item.published=true;item.category=$('#dishCategory').value.trim();item.price=Number($('#dishPrice').value)||0;item.tags=$('#dishTags').value.split(',').map(x=>x.trim()).filter(Boolean);item.allergens=$$('#allergenGrid input:checked').map(x=>x.value);item.translations=item.translations||{};item.translations._meta=item.translations._meta||{};const widthCm=Number($('#dishWidthCm').value);if(widthCm>0)item.translations._meta.width_cm=widthCm;else delete item.translations._meta.width_cm;
+    item.translations._meta.card_visual=$('#dishCardVisual').value||'auto';
+    item.translations._meta.detail_visual=$('#dishDetailVisual').value||'auto';
     if(!item.translations?.en?.name){alert('Please add an English dish name.');return;}
     if(pendingModel)item.model_url=await ARAPP.uploadAsset(pendingModel,currentRestaurant.id,'models');
     if(pendingPhoto)item.photo_url=await ARAPP.uploadAsset(pendingPhoto,currentRestaurant.id,'photos');

@@ -103,3 +103,10 @@
 .hero-builder-card{grid-template-columns:minmax(180px,.8fr) minmax(0,1.2fr);align-items:stretch}.hero-media-preview{width:100%;height:260px}.hero-media-preview img,.hero-media-preview video,.hero-media-preview model-viewer{width:100%;height:100%;display:block;object-fit:cover}.hero-builder-controls{display:grid;align-content:start;gap:10px}.hero-builder-controls>label{display:grid;gap:6px}.hero-builder-controls small{font-size:10px}.hero-media-fields{display:grid;gap:7px}.hero-copy-editor{margin-top:18px;padding:18px;border:1px solid var(--line);border-radius:18px;background:#faf8f3}.hero-copy-editor h4{font-family:Georgia,serif;font-size:22px;margin:0 0 5px}.hero-copy-editor p{margin-bottom:15px}.hero-copy-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.hero-copy-grid label{font-size:11px;color:var(--muted);display:grid;gap:6px}.hero-copy-grid textarea{resize:vertical;min-height:88px}.hero-copy-grid label:last-child{grid-column:1/-1}.hero-builder-panel .brand-upload-grid{grid-template-columns:.72fr 1.28fr}.hero-builder-panel .hero-upload-card{min-width:0}.hidden{display:none!important}
 @media(max-width:980px){.hero-builder-panel .brand-upload-grid{grid-template-columns:1fr}.hero-builder-card{grid-template-columns:170px minmax(0,1fr)}.hero-media-preview{height:210px}}
 @media(max-width:600px){.hero-builder-card{grid-template-columns:1fr}.hero-media-preview{width:100%;height:220px}.hero-copy-grid{grid-template-columns:1fr}.hero-copy-grid label:last-child{grid-column:auto}}
+
+/* Independent dish visuals */
+.dish-visual-settings{margin-top:14px;padding:15px;border:1px solid var(--line,#ddd5c7);border-radius:16px;background:rgba(255,255,255,.45);display:grid;gap:12px}
+.dish-visual-settings label{display:grid;gap:6px;font-size:12px;font-weight:700}
+.dish-visual-settings select{width:100%;padding:10px 11px;border:1px solid var(--line,#ddd5c7);border-radius:10px;background:#fff;color:inherit;font:inherit}
+.dish-visual-settings label small,.display-fallback-note{font-weight:400;color:var(--muted,#777);line-height:1.4}
+.display-fallback-note{display:block;padding-top:2px}

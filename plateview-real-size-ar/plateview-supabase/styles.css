@@ -50,3 +50,13 @@ body[data-template=gallery] .hero{grid-template-columns:1fr;gap:26px;padding-top
   body[data-template=gallery] .hero{padding:28px 16px 30px}body[data-template=gallery] .hero h1{font-size:52px}body[data-template=gallery] .hero-card{height:340px}body[data-template=gallery] .menu-grid{grid-template-columns:1fr 1fr;gap:9px}body[data-template=gallery] .menu-card{display:block;min-height:0}body[data-template=gallery] .model-preview{height:180px;min-height:180px}body[data-template=gallery] .card-copy{padding:12px}body[data-template=gallery] .card-copy h3{font-size:18px}body[data-template=gallery] .card-copy p{display:none}body[data-template=gallery] .card-top{display:block}body[data-template=gallery] .price{display:block;margin-top:5px}
 }
 @media(max-width:390px){body[data-template=gallery] .menu-grid{grid-template-columns:1fr}}
+
+
+/* Dish visual controls: photo/3D can be chosen independently for cards and detail view */
+.dish-detail-photo{display:none;position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:var(--surface)}
+.dish-detail-empty{display:none;position:absolute;inset:0;place-items:center;text-align:center;padding:36px;color:var(--muted);font-size:13px;line-height:1.5}
+.viewer-wrap.photo-mode .dish-detail-photo{display:block}
+.viewer-wrap.photo-mode model-viewer{position:absolute;inset:0;opacity:0;pointer-events:none}
+.viewer-wrap.photo-mode .viewer-activation,.viewer-wrap.photo-mode .viewer-lock{display:none!important}
+.viewer-wrap.empty-mode model-viewer,.viewer-wrap.empty-mode .dish-detail-photo,.viewer-wrap.empty-mode .viewer-activation,.viewer-wrap.empty-mode .viewer-lock{display:none!important}
+.viewer-wrap.empty-mode .dish-detail-empty{display:grid}

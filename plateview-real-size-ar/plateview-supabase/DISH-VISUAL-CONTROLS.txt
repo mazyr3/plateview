@@ -1,0 +1,17 @@
+PlateCrop — independent dish visuals
+
+New per-dish controls:
+1. Menu card visual: Automatic / Photo / 3D model
+2. Opened dish visual: Automatic / Photo / 3D model
+
+These settings are independent. A dish can use:
+- Photo on the menu card + 3D after opening
+- 3D on the menu card + Photo after opening
+- Photo in both places
+- 3D in both places
+
+If only a photo exists, the opened dish now shows that photo instead of an empty 3D area.
+If the chosen asset is unavailable, PlateCrop falls back to the other available asset.
+AR remains available whenever the dish has a 3D model, even when the opened dish is displaying its photo.
+
+No Supabase SQL change is needed. The two preferences are stored in translations._meta.
