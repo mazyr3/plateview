@@ -2,6 +2,16 @@
 const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
 let restaurants=[], currentRestaurant=null, items=[], editingId=null, editLang='en', pendingModel=null, pendingPhoto=null, pendingLogo=null, pendingHeroImage=null, removeLogoRequested=false, removeHeroRequested=false, accountAccess=null;
 
+const MENU_TEMPLATE_DEFAULTS={
+  editorial:{template:'editorial',background:'#f7f4ed',surface:'#fffdf8',text:'#171713',muted:'#746f65',category_background:'#f7f4ed',category_text:'#171713',card_radius:24,density:'comfortable',show_hero:true,sticky_categories:true,show_feature_strip:true},
+  compact:{template:'compact',background:'#f3f3f3',surface:'#ffffff',text:'#171717',muted:'#6f6f6f',category_background:'#111111',category_text:'#ffffff',card_radius:14,density:'compact',show_hero:true,sticky_categories:true,show_feature_strip:false},
+  gallery:{template:'gallery',background:'#f6f1e8',surface:'#fffdf8',text:'#1b1916',muted:'#766f65',category_background:'#fffdf8',category_text:'#1b1916',card_radius:30,density:'comfortable',show_hero:true,sticky_categories:true,show_feature_strip:false}
+};
+function normalizedTheme(source=currentRestaurant?.menu_theme||{}){const template=MENU_TEMPLATE_DEFAULTS[source?.template]?source.template:'editorial';return {...MENU_TEMPLATE_DEFAULTS[template],...(source||{}),template}}
+function themeControlsTheme(){const template=$('.template-card.active')?.dataset.template||'editorial',defaults=MENU_TEMPLATE_DEFAULTS[template]||MENU_TEMPLATE_DEFAULTS.editorial;return {template,background:$('#setMenuBg').value,surface:$('#setMenuSurface').value,text:$('#setMenuText').value,muted:defaults.muted,category_background:$('#setCategoryBg').value,category_text:$('#setCategoryText').value,card_radius:Number($('#setCardRadius').value)||0,density:$('#setMenuDensity').value,show_hero:$('#setShowHero').checked,sticky_categories:$('#setStickyCategories').checked,show_feature_strip:$('#setShowFeatureStrip').checked}}
+function paintThemePreview(theme=themeControlsTheme()){const preview=$('#themePreview');if(!preview)return;preview.dataset.previewTemplate=theme.template;preview.style.setProperty('--p-bg',theme.background);preview.style.setProperty('--p-surface',theme.surface);preview.style.setProperty('--p-text',theme.text);preview.style.setProperty('--p-cat',theme.category_background);[['menuBgValue',theme.background],['menuSurfaceValue',theme.surface],['menuTextValue',theme.text],['categoryBgValue',theme.category_background],['categoryTextValue',theme.category_text]].forEach(([id,val])=>{const el=$('#'+id);if(el)el.textContent=val})}
+function setThemeControls(theme){theme=normalizedTheme(theme);$$('.template-card').forEach(b=>b.classList.toggle('active',b.dataset.template===theme.template));$('#setMenuBg').value=theme.background;$('#setMenuSurface').value=theme.surface;$('#setMenuText').value=theme.text;$('#setCategoryBg').value=theme.category_background;$('#setCategoryText').value=theme.category_text;$('#setCardRadius').value=String(theme.card_radius);$('#setMenuDensity').value=theme.density;$('#setShowHero').checked=theme.show_hero!==false;$('#setStickyCategories').checked=theme.sticky_categories!==false;$('#setShowFeatureStrip').checked=theme.show_feature_strip!==false;paintThemePreview(theme)}
+
 function msg(text){$('#authMessage').textContent=text||''}
 function stat(label,value){return `<article class="stat"><small>${label}</small><strong>${value}</strong></article>`}
 function tItem(i,l='en'){return i.translations?.[l]||i.translations?.en||{name:'Unnamed dish',description:''}}
@@ -384,9 +394,13 @@ function renderSettings(){
   if(!currentRestaurant)return;
   pendingLogo=null;pendingHeroImage=null;removeLogoRequested=false;removeHeroRequested=false;
   $('#setName').value=currentRestaurant.name;$('#setSlug').value=currentRestaurant.slug;$('#setTagline').value=currentRestaurant.tagline||'';$('#setAccent').value=currentRestaurant.accent||'#b7482d';$('#accentValue').textContent=$('#setAccent').value;$('#setTables').value=currentRestaurant.tables||1;$('#setDefaultLang').value=currentRestaurant.default_language||'en';$('#setHeroMode').value=currentRestaurant.hero_mode||'3d';
+  setThemeControls(currentRestaurant.menu_theme||{});$('#openThemePreview').href=liveUrl();
   previewBrandAssets();
 }
 $('#setAccent').addEventListener('input',()=>$('#accentValue').textContent=$('#setAccent').value);
+$$('.template-card').forEach(card=>card.addEventListener('click',()=>setThemeControls(MENU_TEMPLATE_DEFAULTS[card.dataset.template])));
+['setMenuBg','setMenuSurface','setMenuText','setCategoryBg','setCategoryText','setCardRadius','setMenuDensity','setShowHero','setStickyCategories','setShowFeatureStrip'].forEach(id=>$('#'+id)?.addEventListener('input',()=>paintThemePreview()));
+$('#resetThemeBtn').onclick=()=>{const template=$('.template-card.active')?.dataset.template||'editorial';setThemeControls(MENU_TEMPLATE_DEFAULTS[template])};
 $('#logoUpload').addEventListener('change',e=>{pendingLogo=e.target.files?.[0]||null;removeLogoRequested=false;previewBrandAssets()});
 $('#heroImageUpload').addEventListener('change',e=>{pendingHeroImage=e.target.files?.[0]||null;removeHeroRequested=false;previewBrandAssets()});
 $('#removeLogo').onclick=()=>{pendingLogo=null;removeLogoRequested=true;$('#logoUpload').value='';previewBrandAssets()};
@@ -399,7 +413,7 @@ $('#saveSettings').onclick=async()=>{
     let heroUrl=removeHeroRequested?'':(currentRestaurant.hero_image_url||'');
     if(pendingLogo)logoUrl=await ARAPP.uploadAsset(pendingLogo,currentRestaurant.id,'branding/logo');
     if(pendingHeroImage)heroUrl=await ARAPP.uploadAsset(pendingHeroImage,currentRestaurant.id,'branding/hero');
-    const patch={name:$('#setName').value.trim()||'Restaurant',slug:ARAPP.slugify($('#setSlug').value||$('#setName').value),tagline:$('#setTagline').value.trim(),accent:$('#setAccent').value,tables:Math.max(1,Number($('#setTables').value)||1),default_language:$('#setDefaultLang').value,logo_url:logoUrl,hero_image_url:heroUrl,hero_mode:$('#setHeroMode').value};
+    const patch={name:$('#setName').value.trim()||'Restaurant',slug:ARAPP.slugify($('#setSlug').value||$('#setName').value),tagline:$('#setTagline').value.trim(),accent:$('#setAccent').value,tables:Math.max(1,Number($('#setTables').value)||1),default_language:$('#setDefaultLang').value,logo_url:logoUrl,hero_image_url:heroUrl,hero_mode:$('#setHeroMode').value,menu_theme:themeControlsTheme()};
     currentRestaurant=await ARAPP.updateRestaurant(currentRestaurant.id,patch);restaurants=restaurants.map(r=>r.id===currentRestaurant.id?currentRestaurant:r);renderAll();
   }catch(e){alert(e.message)}
   finally{button.disabled=false;button.textContent='Save settings'}

@@ -1,0 +1,23 @@
+PlateCrop menu templates + customization
+
+What changed
+- Three guest-menu templates: Editorial, Compact, Gallery.
+- Restaurant owners can customize menu background, card/surface color, text color, category-bar color, product density, card corners, hero visibility, sticky categories, and the 3D/AR explanation strip.
+- Theme settings are stored per restaurant in restaurants.menu_theme (JSONB).
+- Category buttons now stay pinned directly below the restaurant header while guests scroll, including on mobile.
+- The active category button automatically stays in view in the horizontal category strip.
+- Existing 3D, AR, translations, analytics and QR table tracking are unchanged.
+
+IMPORTANT — run this once before saving themes
+1. Supabase -> SQL Editor -> New query
+2. Paste supabase/menu-theme-upgrade.sql
+3. Run it
+4. Deploy the changed files to Vercel
+
+Where to customize
+Dashboard -> Settings -> Menu Design
+
+Templates
+- Editorial: the existing premium PlateCrop style.
+- Compact: denser, menu-first layout inspired by the quick scanning behavior common in ordering menus.
+- Gallery: larger food/3D visuals in a gallery layout.

@@ -27,7 +27,8 @@ const ARAPP = (() => {
     tables: 12,
     logo_url:'',
     hero_image_url:'',
-    hero_mode:'3d'
+    hero_mode:'3d',
+    menu_theme:{}
   };
 
   const demoItems = [
@@ -109,7 +110,8 @@ const ARAPP = (() => {
       tables:10,
       logo_url:'',
       hero_image_url:'',
-      hero_mode:'3d'
+      hero_mode:'3d',
+      menu_theme:input.menu_theme || {}
     };
     const {data,error}=await supabase.from('restaurants').insert(row).select().single();
     if(error) throw error;

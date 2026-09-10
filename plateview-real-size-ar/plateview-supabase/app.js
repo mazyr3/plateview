@@ -2,6 +2,14 @@ const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelect
 const params=new URLSearchParams(location.search);
 let restaurant=null, items=[], lang='en', activeCategory='All', activeDish=null;
 
+const MENU_TEMPLATE_DEFAULTS={
+  editorial:{template:'editorial',background:'#f7f4ed',surface:'#fffdf8',text:'#171713',muted:'#746f65',category_background:'#f7f4ed',category_text:'#171713',card_radius:24,density:'comfortable',show_hero:true,sticky_categories:true,show_feature_strip:true},
+  compact:{template:'compact',background:'#f3f3f3',surface:'#ffffff',text:'#171717',muted:'#6f6f6f',category_background:'#111111',category_text:'#ffffff',card_radius:14,density:'compact',show_hero:true,sticky_categories:true,show_feature_strip:false},
+  gallery:{template:'gallery',background:'#f6f1e8',surface:'#fffdf8',text:'#1b1916',muted:'#766f65',category_background:'#fffdf8',category_text:'#1b1916',card_radius:30,density:'comfortable',show_hero:true,sticky_categories:true,show_feature_strip:false}
+};
+function menuTheme(){const saved=restaurant?.menu_theme||{};const template=MENU_TEMPLATE_DEFAULTS[saved.template]?saved.template:'editorial';return {...MENU_TEMPLATE_DEFAULTS[template],...saved,template}}
+function applyMenuTheme(){const theme=menuTheme(),root=document.documentElement;document.body.dataset.template=theme.template;document.body.dataset.density=theme.density||'comfortable';root.style.setProperty('--bg',theme.background);root.style.setProperty('--surface',theme.surface);root.style.setProperty('--ink',theme.text);root.style.setProperty('--muted',theme.muted);root.style.setProperty('--category-bg',theme.category_background);root.style.setProperty('--category-text',theme.category_text);root.style.setProperty('--radius',`${Number(theme.card_radius)||0}px`);$('.hero')?.classList.toggle('theme-hidden',theme.show_hero===false);$('.feature-strip')?.classList.toggle('theme-hidden',theme.show_feature_strip===false);$('.filter-wrap')?.classList.toggle('category-static',theme.sticky_categories===false)}
+
 const ui={
   en:{eyebrow:'THE MENU, BROUGHT TO YOUR TABLE',hero1:'See your dish',hero2:'before it arrives.',explore:'Explore menu',tryar:'Try AR',rotate:'Drag to rotate',heroTrust:'3D preview · real-size AR on supported phones',discover:'DISCOVER',ourmenu:'Our menu',intro:'Tap any dish to inspect it in 3D, then place it on your table in augmented reality.',step1h:'Choose a dish',step1p:'Browse the visual menu and allergen information.',step2h:'Explore in 3D',step2p:'Rotate, zoom and inspect the plate from every angle.',step3h:'Place it in AR',step3p:'Use your phone camera to preview it on your table.',all:'All',unavailable:'Unavailable',allergens:'Allergens',viewTable:'View on your table',openCamera:'Open camera AR',viewerHint:'Drag to rotate · pinch to zoom',tap3d:'Tap to explore in 3D',scrollHint:'Scroll normally until activated',active3d:'3D active',arStep1:'Point at your table',arStep2:'Move slowly to detect it',arStep3:'Tap to place the dish',table:'Table',view3d:'View in 3D'},
   nl:{eyebrow:'HET MENU, OP JOUW TAFEL',hero1:'Bekijk je gerecht',hero2:'voor het arriveert.',explore:'Bekijk menu',tryar:'Probeer AR',rotate:'Sleep om te draaien',heroTrust:'3D-preview · AR op ware grootte op ondersteunde telefoons',discover:'ONTDEK',ourmenu:'Ons menu',intro:'Tik op een gerecht om het in 3D te bekijken en plaats het daarna in AR op je tafel.',step1h:'Kies een gerecht',step1p:'Bekijk het visuele menu en allergenen.',step2h:'Bekijk in 3D',step2p:'Draai, zoom en bekijk het bord vanuit elke hoek.',step3h:'Plaats in AR',step3p:'Gebruik je camera om het gerecht op tafel te bekijken.',all:'Alles',unavailable:'Niet beschikbaar',allergens:'Allergenen',viewTable:'Bekijk op je tafel',openCamera:'Open camera AR',viewerHint:'Sleep om te draaien · knijp om te zoomen',tap3d:'Tik om 3D te bedienen',scrollHint:'Scroll normaal totdat 3D actief is',active3d:'3D actief',arStep1:'Richt op je tafel',arStep2:'Beweeg langzaam om te detecteren',arStep3:'Tik om het gerecht te plaatsen',table:'Tafel',view3d:'Bekijk in 3D'},
@@ -61,7 +69,7 @@ function setHero(){
 function renderFilters(){
   const cats=['All',...new Set(items.filter(i=>i.published).map(i=>i.category).filter(Boolean))];
   $('#filters').innerHTML=cats.map((c,idx)=>`<button class="filter-btn ${activeCategory===c?'active':''}" data-cat="${esc(c)}">${idx===0?ui[lang].all:esc(c)}</button>`).join('');
-  $$('.filter-btn').forEach(b=>b.onclick=()=>{activeCategory=b.dataset.cat;$$('.filter-btn').forEach(x=>x.classList.toggle('active',x===b));renderMenu()});
+  $$('.filter-btn').forEach(b=>b.onclick=()=>{activeCategory=b.dataset.cat;$$('.filter-btn').forEach(x=>x.classList.toggle('active',x===b));b.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'});renderMenu();if(window.matchMedia('(max-width:700px)').matches){$('#menuGrid')?.scrollIntoView({behavior:'smooth',block:'start'})}});
 }
 function renderMenu(){
   const list=items.filter(i=>i.published&&(activeCategory==='All'||i.category===activeCategory));
@@ -140,7 +148,7 @@ async function boot(){
   if(!result){document.body.innerHTML='<main style="padding:10vw;font-family:system-ui"><h1>Menu unavailable</h1><p>This restaurant is not published or the link is incorrect.</p></main>';return;}
   restaurant=result.restaurant; items=result.items;
   lang=params.get('lang')||restaurant.default_language||'en'; if(!ui[lang])lang='en';
-  applyBrand();setHero();renderFilters();renderMenu();setupViewerGates();
+  applyMenuTheme();applyBrand();setHero();renderFilters();renderMenu();setupViewerGates();
   await ARAPP.track(restaurant.id,'menu_view',null,params.get('table'));
 }
 $('#closeDialog').onclick=closeDish;
