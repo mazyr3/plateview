@@ -25,8 +25,8 @@
 <main>
 <section class="hero">
   <div class="hero-copy">
-    <span class="eyebrow" data-i18n="eyebrow">THE MENU, BROUGHT TO YOUR TABLE</span>
-    <h1><span data-i18n="hero1">See your dish</span><br><em data-i18n="hero2">before it arrives.</em></h1>
+    <span class="eyebrow" id="heroEyebrow" data-i18n="eyebrow">THE MENU, BROUGHT TO YOUR TABLE</span>
+    <h1><span id="heroTitle" data-i18n="hero1">See your dish</span><br><em id="heroAccent" data-i18n="hero2">before it arrives.</em></h1>
     <p id="tagline"></p>
     <div class="hero-actions">
       <a class="primary-btn" href="#menu" data-i18n="explore">Explore menu</a>
@@ -35,6 +35,7 @@
     <div class="hero-trust"><span>◉</span><span data-i18n="heroTrust">3D preview · real-size AR on supported phones</span></div>
   </div>
   <div class="hero-card tap-gated-viewer" id="heroViewerWrap">
+    <video id="heroVideo" class="hero-video" muted loop playsinline autoplay preload="metadata"></video>
     <model-viewer id="heroViewer" auto-rotate shadow-intensity="1.15" environment-image="neutral" interaction-prompt="none" camera-orbit="25deg 70deg auto" field-of-view="30deg"></model-viewer>
     <button class="viewer-activation" type="button" data-viewer-target="heroViewer" aria-pressed="false">
       <span class="activation-icon">☝</span>

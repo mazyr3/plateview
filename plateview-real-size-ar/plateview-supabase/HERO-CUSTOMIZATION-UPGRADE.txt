@@ -1,0 +1,12 @@
+PlateCrop hero customization upgrade
+
+What changed:
+- Hero headline text can be customized from Dashboard > Settings.
+- Choose the exact dish used in the hero 3D viewer.
+- Hero visual can be switched between 3D dish, image, and video.
+- Hero videos can be uploaded/replaced later and autoplay muted + loop on the guest menu.
+- Image/video/3D settings are per restaurant.
+- No new Supabase SQL is required: the extra hero settings are stored inside the existing restaurants.menu_theme JSON field.
+
+Install:
+Replace the files from the update ZIP in your current project, commit, and redeploy Vercel.
