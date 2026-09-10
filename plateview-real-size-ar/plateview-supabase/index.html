@@ -29,18 +29,18 @@
       <div class="proof-line"><span>No app required</span><span>iPhone + Android</span><span>Restaurant-controlled</span></div>
     </div>
 
-    <div class="hero-product" aria-label="PlateCrop interactive 3D menu preview">
-      <div class="product-window">
-        <div class="product-bar"><span class="tiny-brand"><b>PC</b> PlateCrop</span><span class="table-pill">Table 12</span></div>
-        <div class="dish-stage">
-          <span class="dish-label">SIGNATURE</span>
-          <model-viewer src="assets/models/burger.glb" camera-controls auto-rotate shadow-intensity="1" environment-image="neutral" interaction-prompt="none"></model-viewer>
-          <div class="dish-copy"><div><small>House favorite</small><strong>Classic Burger</strong></div><b>€18</b></div>
-          <button class="ar-pill" type="button">◎ View in AR</button>
+    <div class="hero-media" aria-label="PlateCrop product video">
+      <div class="hero-video-shell">
+        <video id="platecropHeroVideo" class="hero-video" autoplay muted loop playsinline preload="metadata" poster="assets/platecrop-hero-poster.jpg">
+          <source id="platecropHeroVideoSource" src="assets/platecrop-hero.mp4" type="video/mp4">
+          Your browser does not support HTML video.
+        </video>
+        <div class="hero-video-controls" aria-label="Video controls">
+          <button id="heroVideoPlay" class="video-control video-play" type="button" aria-label="Pause video">Ⅱ</button>
+          <button id="heroVideoSound" class="video-control video-sound" type="button">Sound on</button>
         </div>
       </div>
-      <div class="floating-card fc-one"><small>MENU INSIGHT</small><b>32%</b><span>dish → AR opens</span></div>
-      <div class="floating-card fc-two"><span class="pulse"></span><b>Live menu</b><small>QR ready</small></div>
+      <div class="hero-video-note"><span class="pulse"></span><b>PlateCrop in action</b><small>Replace this video whenever your product demo changes.</small></div>
     </div>
   </section>
 
@@ -90,5 +90,7 @@
 </main>
 
 <footer class="footer"><div class="wrap footer-grid"><a class="brand" href="index.html"><span class="brand-mark"><i></i><i></i><i></i><i></i></span><span>PlateCrop</span></a><p>3D & AR menus for restaurants.</p><div><a href="#product">Product</a><a href="pricing.html">Pricing</a><a href="auth.html?mode=login">Sign in</a></div></div></footer>
+  <script src="marketing-config.js"></script>
+  <script src="hero-video.js"></script>
 </body>
 </html>

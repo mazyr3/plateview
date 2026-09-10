@@ -1,0 +1,26 @@
+PLATECROP HOMEPAGE VIDEO UPDATE
+
+The large hero product mockup is now an autoplaying, looping video, similar in interaction pattern to modern SaaS homepages. It starts muted so autoplay works on mobile and includes Sound on + Play/Pause controls.
+
+HOW TO CHANGE THE VIDEO LATER
+
+Easiest option (no code):
+1. Export your new product demo as MP4.
+2. Name it: platecrop-hero.mp4
+3. Replace: assets/platecrop-hero.mp4
+4. Commit and redeploy.
+
+Optional poster image:
+Replace assets/platecrop-hero-poster.jpg with a new JPG using the same name.
+
+Alternative: edit marketing-config.js and change heroVideo / heroVideoPoster to another local path or an HTTPS URL.
+
+Recommended export: MP4 (H.264), 16:10 or 16:9, 1080p-ish, under ~15 MB if possible, muted-friendly visuals, 8-20 seconds for a looping hero demo.
+
+Files added/changed:
+- index.html
+- sales.css
+- marketing-config.js
+- hero-video.js
+- assets/platecrop-hero.mp4
+- assets/platecrop-hero-poster.jpg
