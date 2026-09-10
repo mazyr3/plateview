@@ -23,7 +23,7 @@ async function ensureAuth(){
     $('#subscriptionScreen').classList.remove('hidden');
     if(accountAccess.reason==='suspended'){
       $('#lockTitle').textContent='Account suspended';
-      $('#lockCopy').textContent='This PlateView account has been suspended. Contact PlateView support if you believe this is a mistake.';
+      $('#lockCopy').textContent='This PlateCrop account has been suspended. Contact PlateCrop support if you believe this is a mistake.';
       $('#lockBillingBtn').classList.add('hidden');
     }
     return;
@@ -409,7 +409,7 @@ async function renderBilling(){
     accountAccess=await ARAPP.accountAccess();
     const sub=accountAccess.subscription||{};
     const plan=(sub.plan||'No active plan').replace(/^./,c=>c.toUpperCase());
-    $('#billingPlan').textContent=plan==='Legacy'?'Legacy PlateView access':`${plan} plan`;
+    $('#billingPlan').textContent=plan==='Legacy'?'Legacy PlateCrop access':`${plan} plan`;
     $('#billingStatus').textContent=(sub.status||'inactive').replaceAll('_',' ');
     $('#billingStatus').className=`billing-status ${['active','trialing','legacy'].includes(sub.status)?'ok':'warn'}`;
     if(sub.current_period_end){

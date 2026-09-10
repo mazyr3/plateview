@@ -1,8 +1,94 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#f6f2e9"><title>PlateView — 3D & AR menus for restaurants</title><meta name="description" content="Turn your restaurant menu into an interactive 3D and augmented reality experience."><link rel="stylesheet" href="sales.css"><script>if(new URLSearchParams(location.search).has('r'))location.replace('menu.html'+location.search+location.hash)</script><script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/4.3.1/model-viewer.min.js"></script></head><body>
-<header class="site-header"><div class="wrap nav"><a class="brand" href="index.html"><span class="brand-mark">P</span><span>PlateView</span></a><div class="nav-links"><a href="#features">Features</a><a href="#how">How it works</a><a href="pricing.html">Pricing</a><a href="#faq">FAQ</a></div><div class="nav-actions"><a class="btn" href="auth.html?mode=login">Sign in</a><a class="btn primary" href="pricing.html">Start PlateView</a></div></div></header>
-<main><section class="wrap hero"><div><span class="eyebrow">THE MENU, BROUGHT TO THE TABLE</span><h1>Let guests <em>see the dish.</em></h1><p>PlateView gives restaurants a beautiful digital menu with interactive 3D dishes, real-size augmented reality, table QR codes and actionable analytics — no app required.</p><div class="hero-actions"><a class="btn primary" href="pricing.html">Start your restaurant</a><a class="btn" href="menu.html?demo=1">View demo menu ↗</a></div><div class="trust-row"><span>✓ Works from a QR code</span><span>✓ iPhone & Android AR</span><span>✓ Restaurant-owned dashboard</span></div></div><div class="viewer-card"><span class="viewer-label">Interactive 3D preview</span><model-viewer src="assets/models/burger.glb" camera-controls auto-rotate shadow-intensity="1" environment-image="neutral" interaction-prompt="none"></model-viewer><div class="viewer-note"><span>Drag to rotate</span><span>Real-size AR on supported phones</span></div></div></section>
-<section class="section" id="features"><div class="wrap"><div class="section-head"><div><span class="eyebrow">PLATEVIEW FOR RESTAURANTS</span><h2>A menu people remember.</h2></div><p>Your restaurant controls everything from one dashboard while guests get a frictionless phone experience.</p></div><div class="feature-grid"><article class="feature"><span>◫</span><h3>3D dishes</h3><p>Upload GLB models, arrange categories, update prices and availability, and let guests inspect food before ordering.</p></article><article class="feature"><span>◎</span><h3>Table AR</h3><p>Calibrate a dish’s real-world width and place it on the table through the phone camera.</p></article><article class="feature"><span>⌗</span><h3>QR per table</h3><p>Generate, share and print QR codes for every table. Table numbers flow into analytics automatically.</p></article><article class="feature"><span>↗</span><h3>Menu analytics</h3><p>See menu views, dish opens, AR launches, top dishes and engagement by table.</p></article><article class="feature"><span>文</span><h3>Multiple languages</h3><p>Manage English, Dutch and French dish names and descriptions from the same editor.</p></article><article class="feature"><span>✦</span><h3>Your branding</h3><p>Add your logo, hero image, accent color and restaurant identity without rebuilding the menu.</p></article></div></div></section>
-<section class="section" id="how"><div class="wrap"><div class="section-head"><div><span class="eyebrow">HOW IT WORKS</span><h2>From signup to tables.</h2></div></div><div class="how-grid"><div class="step"><b>01</b><h3>Subscribe</h3><p>Choose a plan and create your PlateView owner account.</p></div><div class="step"><b>02</b><h3>Build</h3><p>Add restaurant branding, dishes, prices, allergens and 3D models.</p></div><div class="step"><b>03</b><h3>Publish</h3><p>Set table count and generate one QR code for every table.</p></div><div class="step"><b>04</b><h3>Learn</h3><p>See which dishes guests open and which ones they place in AR.</p></div></div></div></section>
-<section class="section" id="pricing"><div class="wrap"><div class="section-head"><div><span class="eyebrow">PRICING</span><h2>Simple pricing, built to launch.</h2></div><p>Each plan has a one-time setup fee, followed by a monthly subscription.</p></div><div class="pricing-grid"><article class="price-card"><h3>Starter</h3><div class="setup-fee">€160 <span>one-time setup fee</span></div><div class="price recurring">€120 <small>/ month</small></div><p class="billing-note">First checkout: €280 (setup + first month). Then €120/month.</p><p>For one restaurant launching its first interactive menu.</p><ul><li>1 restaurant</li><li>3D & real-size AR menu</li><li>Table QR codes</li><li>Menu analytics</li><li>Custom branding</li><li>EN / NL / FR</li></ul><a class="btn primary" href="auth.html?mode=signup&plan=starter">Choose Starter</a></article><article class="price-card popular"><span class="popular-tag">MOST POPULAR</span><h3>Pro</h3><div class="setup-fee">€200 <span>one-time setup fee</span></div><div class="price recurring">€190 <small>/ month</small></div><p class="billing-note">First checkout: €390 (setup + first month). Then €190/month.</p><p>For restaurants that want stronger analytics and branding.</p><ul><li>Everything in Starter</li><li>Up to 5 restaurants</li><li>Multi-location management</li><li>3D & AR across every location</li><li>Priority support</li></ul><a class="btn accent" href="auth.html?mode=signup&plan=pro">Choose Pro</a></article></div></div></section>
-<section class="section" id="faq"><div class="wrap faq"><div class="section-head"><div><span class="eyebrow">FAQ</span><h2>Before you start.</h2></div></div><details><summary>Do guests need an app?</summary><p>No. They scan the table QR code and use the web menu directly in the browser.</p></details><details><summary>Can restaurant owners edit their own menu?</summary><p>Yes. Each paying owner signs into a private dashboard protected by Supabase authentication and Row Level Security.</p></details><details><summary>What happens if a subscription stops?</summary><p>The dashboard becomes locked while the restaurant data remains stored, so the account can be restored after renewal.</p></details><details><summary>Can I change prices later?</summary><p>Yes. The monthly recurring prices live in Stripe, while the one-time setup fee is added by the PlateView checkout. Both can be changed later.</p></details></div></section>
-<section class="wrap cta"><div><span class="eyebrow">READY TO PUT IT ON THE TABLE?</span><h2>Launch your first PlateView menu.</h2><p>Subscribe, add your restaurant and publish your QR codes.</p></div><a class="btn accent" href="pricing.html">Choose a plan</a></section></main><footer class="footer"><div class="wrap">© PlateView · 3D & AR restaurant menus</div></footer></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#fff7ef">
+  <title>PlateCrop — 3D & AR menus for restaurants</title>
+  <meta name="description" content="PlateCrop gives restaurants an interactive 3D and augmented reality menu, table QR codes, multilingual content and menu analytics.">
+  <link rel="stylesheet" href="sales.css">
+  <script>if(new URLSearchParams(location.search).has('r'))location.replace('menu.html'+location.search+location.hash)</script>
+  <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/4.3.1/model-viewer.min.js"></script>
+</head>
+<body>
+<header class="site-header">
+  <div class="wrap nav">
+    <a class="brand" href="index.html" aria-label="PlateCrop home"><span class="brand-mark"><i></i><i></i><i></i><i></i></span><span>PlateCrop</span></a>
+    <nav class="nav-links"><a href="#product">Product</a><a href="#how">How it works</a><a href="pricing.html">Pricing</a><a href="#faq">FAQ</a></nav>
+    <div class="nav-actions"><a class="btn ghost" href="auth.html?mode=login">Sign in</a><a class="btn primary" href="pricing.html">Get PlateCrop</a></div>
+  </div>
+</header>
+
+<main>
+  <section class="hero wrap">
+    <div class="hero-copy">
+      <span class="kicker">3D + AR MENUS FOR RESTAURANTS</span>
+      <h1>Help guests choose with their <span>eyes first.</span></h1>
+      <p class="hero-lede">PlateCrop turns your menu into an interactive experience guests can open from a QR code, explore in 3D, and place on the table in real-size AR.</p>
+      <div class="hero-actions"><a class="btn primary big" href="pricing.html">Start your restaurant</a><a class="text-link" href="menu.html?demo=1">See the guest experience <b>↗</b></a></div>
+      <div class="proof-line"><span>No app required</span><span>iPhone + Android</span><span>Restaurant-controlled</span></div>
+    </div>
+
+    <div class="hero-product" aria-label="PlateCrop interactive 3D menu preview">
+      <div class="product-window">
+        <div class="product-bar"><span class="tiny-brand"><b>PC</b> PlateCrop</span><span class="table-pill">Table 12</span></div>
+        <div class="dish-stage">
+          <span class="dish-label">SIGNATURE</span>
+          <model-viewer src="assets/models/burger.glb" camera-controls auto-rotate shadow-intensity="1" environment-image="neutral" interaction-prompt="none"></model-viewer>
+          <div class="dish-copy"><div><small>House favorite</small><strong>Classic Burger</strong></div><b>€18</b></div>
+          <button class="ar-pill" type="button">◎ View in AR</button>
+        </div>
+      </div>
+      <div class="floating-card fc-one"><small>MENU INSIGHT</small><b>32%</b><span>dish → AR opens</span></div>
+      <div class="floating-card fc-two"><span class="pulse"></span><b>Live menu</b><small>QR ready</small></div>
+    </div>
+  </section>
+
+  <section class="logo-strip"><div class="wrap"><p>Built for the moment between <b>“What should I get?”</b> and <b>“That one.”</b></p><div class="mini-points"><span>3D DISHES</span><span>REAL-SIZE AR</span><span>TABLE QR</span><span>ANALYTICS</span><span>EN · NL · FR</span></div></div></section>
+
+  <section class="platform section" id="product">
+    <div class="wrap">
+      <div class="section-intro"><span class="kicker">ONE MENU, THREE JOBS</span><h2>Show it. Place it. Learn from it.</h2><p>Everything restaurants need to turn a static menu into a visual, measurable guest experience.</p></div>
+      <div class="workflow-grid">
+        <article class="workflow active"><span>01</span><h3>Show</h3><p>Let guests rotate dishes in 3D, read descriptions, prices and allergens, and browse in their language.</p></article>
+        <article class="workflow"><span>02</span><h3>Place</h3><p>Use calibrated real-size AR so guests can preview a dish directly on their own table.</p></article>
+        <article class="workflow"><span>03</span><h3>Learn</h3><p>See what guests open, which dishes trigger AR, and which tables are most engaged.</p></article>
+      </div>
+      <div class="dashboard-demo">
+        <div class="demo-sidebar"><a class="brand compact" href="#"><span class="brand-mark"><i></i><i></i><i></i><i></i></span><span>PlateCrop</span></a><span class="demo-nav active">Overview</span><span class="demo-nav">Menu</span><span class="demo-nav">QR codes</span><span class="demo-nav">Analytics</span><span class="demo-nav">Branding</span></div>
+        <div class="demo-main"><div class="demo-head"><div><small>GOOD EVENING</small><h3>Maison Crop</h3></div><button>View live menu ↗</button></div><div class="metric-grid"><div><small>MENU VIEWS</small><b>1,284</b><em>+18% this month</em></div><div><small>DISH OPENS</small><b>742</b><em>58% engagement</em></div><div><small>AR LAUNCHES</small><b>238</b><em>32% conversion</em></div></div><div class="chart-card"><div class="chart-head"><b>Guest interest</b><span>Last 30 days</span></div><div class="fake-chart"><i style="height:28%"></i><i style="height:42%"></i><i style="height:34%"></i><i style="height:62%"></i><i style="height:53%"></i><i style="height:75%"></i><i style="height:66%"></i><i style="height:88%"></i><i style="height:78%"></i><i style="height:96%"></i></div></div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="split-feature section orange-wash">
+    <div class="wrap split-grid">
+      <div class="split-copy"><span class="kicker">THE GUEST EXPERIENCE</span><h2>A menu that feels effortless.</h2><p>Guests scan once and immediately get a polished mobile menu. No download, no account, no checkout flow — just the food.</p><ul class="check-list"><li>Interactive 3D dish previews</li><li>Real-size AR on supported phones</li><li>English, Dutch and French</li><li>Prices, descriptions, allergens and availability</li></ul></div>
+      <div class="phone-stage"><div class="phone-shell"><div class="phone-top"></div><div class="phone-menu-head"><small>MAISON CROP</small><h3>Tonight's menu</h3><p>Tap a dish to explore it in 3D.</p></div><div class="phone-dish"><model-viewer src="assets/models/sushi.glb" camera-controls auto-rotate shadow-intensity=".7" interaction-prompt="none"></model-viewer><div><b>Chef's selection</b><span>€24</span></div></div><div class="phone-dish mini"><model-viewer src="assets/models/pizza.glb" camera-controls auto-rotate interaction-prompt="none"></model-viewer><div><b>Wood-fired pizza</b><span>€19</span></div></div></div><span class="scan-tag">⌗ Scan → explore</span></div>
+    </div>
+  </section>
+
+  <section class="section" id="how">
+    <div class="wrap">
+      <div class="section-intro narrow"><span class="kicker">FROM SIGNUP TO TABLES</span><h2>Four steps. One live menu.</h2></div>
+      <div class="steps-grid"><article><b>1</b><h3>Create</h3><p>Choose your plan and create the restaurant owner account.</p></article><article><b>2</b><h3>Build</h3><p>Add branding, dishes, prices, allergens and your 3D models.</p></article><article><b>3</b><h3>Publish</h3><p>Set your table count and generate a unique QR for each table.</p></article><article><b>4</b><h3>Improve</h3><p>Use menu and AR analytics to learn what guests care about.</p></article></div>
+    </div>
+  </section>
+
+  <section class="section pricing-preview" id="pricing">
+    <div class="wrap pricing-shell">
+      <div class="pricing-copy"><span class="kicker">STRAIGHTFORWARD PRICING</span><h2>Start with one restaurant. Grow when you need to.</h2><p>The setup fee is charged once at signup together with the first month. After that, only the monthly subscription renews.</p><a class="text-link light" href="pricing.html">See full pricing <b>→</b></a></div>
+      <div class="quick-plans"><article><small>STARTER</small><div class="mini-price"><b>€120</b><span>/month</span></div><p>€160 one-time setup · 1 restaurant</p><a class="btn light" href="auth.html?mode=signup&plan=starter">Choose Starter</a></article><article class="pro"><small>PRO</small><div class="mini-price"><b>€190</b><span>/month</span></div><p>€200 one-time setup · up to 5 restaurants</p><a class="btn orange" href="auth.html?mode=signup&plan=pro">Choose Pro</a></article></div>
+    </div>
+  </section>
+
+  <section class="section" id="faq">
+    <div class="wrap faq-layout"><div><span class="kicker">QUESTIONS</span><h2>Before you put it on the table.</h2></div><div class="faq"><details><summary>Do guests need an app?</summary><p>No. They scan the table QR code and use the menu directly in the browser.</p></details><details><summary>Can restaurant owners edit their own menu?</summary><p>Yes. Each owner gets a private dashboard for dishes, translations, QR codes, branding and analytics.</p></details><details><summary>What happens if a subscription stops?</summary><p>The dashboard becomes locked while the restaurant data stays stored, so access can be restored after renewal.</p></details><details><summary>Can I change my menu whenever I want?</summary><p>Yes. Prices, availability, categories, descriptions, models and branding can all be updated from the dashboard.</p></details></div></div>
+  </section>
+
+  <section class="final-cta"><div class="wrap"><span class="kicker">PLATECROP</span><h2>Make the menu part of the experience.</h2><p>Give guests a better way to see what they are about to order.</p><div><a class="btn primary big" href="pricing.html">Start your restaurant</a><a class="btn ghost big" href="menu.html?demo=1">View demo</a></div></div></section>
+</main>
+
+<footer class="footer"><div class="wrap footer-grid"><a class="brand" href="index.html"><span class="brand-mark"><i></i><i></i><i></i><i></i></span><span>PlateCrop</span></a><p>3D & AR menus for restaurants.</p><div><a href="#product">Product</a><a href="pricing.html">Pricing</a><a href="auth.html?mode=login">Sign in</a></div></div></footer>
+</body>
+</html>

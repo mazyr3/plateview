@@ -103,7 +103,7 @@ function updateArCapability(){
   btn.disabled=!hasModel;
   $('#arReadyCard').classList.toggle('disabled',!hasModel);
   if(!hasModel){$('#arCompatibilityNote').textContent='A 3D model has not been added for this dish yet.';}
-  else if(!secure){$('#arCompatibilityNote').textContent='Camera AR needs HTTPS. Open the deployed PlateView link on your phone.';}
+  else if(!secure){$('#arCompatibilityNote').textContent='Camera AR needs HTTPS. Open the deployed PlateCrop link on your phone.';}
   else if(viewer.canActivateAR===false){$('#arCompatibilityNote').textContent='3D works here, but this browser does not expose native AR.';}
   else{$('#arCompatibilityNote').textContent='Camera AR will place the dish at its calibrated size on supported phones.';}
 }
@@ -129,7 +129,7 @@ async function launchAR(){
   try{
     await ARAPP.track(restaurant.id,'ar_launch',activeDish.id,params.get('table'));
     await $('#dishViewer').activateAR();
-  }catch(e){alert('AR could not start. Try opening PlateView in Chrome on Android or Safari on iPhone.');}
+  }catch(e){alert('AR could not start. Try opening PlateCrop in Chrome on Android or Safari on iPhone.');}
   finally{button.classList.remove('loading')}
 }
 function closeDish(){if($('#dishDialog').open)$('#dishDialog').close();document.body.classList.remove('dialog-open')}

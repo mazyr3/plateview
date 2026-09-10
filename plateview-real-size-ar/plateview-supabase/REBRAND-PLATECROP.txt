@@ -1,0 +1,17 @@
+PlateCrop rebrand — Harvest-inspired public website
+
+What changed
+- Public brand name changed from PlateView to PlateCrop across the customer-facing site, onboarding, dashboard, admin UI, guest-facing messages, docs, and Stripe setup-fee line item.
+- Public sales website redesigned with a Harvest-inspired feel: bold typography, warm cream/orange palette, simple product-led sections, clean cards, roomy layout, and a strong dark pricing band.
+- Existing restaurant SaaS functionality is preserved.
+- Existing Supabase internal function names such as is_plateview_admin / has_plateview_access were intentionally NOT renamed. They are internal database identifiers and changing them would break your current database/RLS policies.
+- Existing Vercel deployment URL plateview-cyan.vercel.app is intentionally left unchanged for now. You can connect a PlateCrop domain later without breaking the app.
+- Starter pricing: EUR 160 setup + EUR 120/month (first checkout EUR 280).
+- Pro pricing: EUR 200 setup + EUR 190/month (first checkout EUR 390).
+- Latest checkout activation, onboarding null-safety, duplicate URL message, and admin permission SQL are included.
+
+Important Stripe rebrand step
+The recurring Stripe Price IDs are still linked to the Stripe Products you created earlier. If those Products are still named PlateView Starter / PlateView Pro, rename those Products in Stripe to PlateCrop Starter / PlateCrop Pro. You can keep the SAME Price IDs; do not create duplicate recurring prices just for the name change.
+
+Deploy
+Replace the files in your existing Vercel/GitHub project with this build, commit, and redeploy Production.
