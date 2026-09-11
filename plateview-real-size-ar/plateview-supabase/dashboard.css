@@ -489,3 +489,99 @@
 .admin-client-banner b{font-size:12px;color:#7a4318;text-transform:uppercase;letter-spacing:.06em}
 .admin-client-banner span{font-size:12px;color:#65513c}
 @media(max-width:700px){.admin-client-banner{margin-top:8px;align-items:flex-start}.admin-client-banner .btn{padding:8px 9px;font-size:10px;white-space:nowrap}.admin-client-banner span{font-size:10px}}
+
+
+/* PlateCrop dashboard brand alignment — matches the public marketing site */
+:root{
+  --bg:#fff8f1;
+  --surface:#fffdf9;
+  --ink:#17181b;
+  --muted:#69645f;
+  --line:#d8cfc4;
+  --accent:#c9481c;
+  --soft:#f6eee5;
+  --orange:#f26430;
+  --orange-dark:#c9481c;
+  --peach:#ffd6bd;
+}
+body{background:var(--bg);color:var(--ink)}
+
+/* Shared PlateCrop crop-frame mark */
+.brand-mark{
+  width:38px;height:38px;position:relative;display:inline-block;flex:0 0 auto;
+  border-radius:9px;background:var(--orange)
+}
+.brand-mark i{position:absolute;width:8px;height:8px;border:2px solid #fffdf9}
+.brand-mark i:nth-child(1){left:7px;top:7px;border-right:0;border-bottom:0}
+.brand-mark i:nth-child(2){right:7px;top:7px;border-left:0;border-bottom:0}
+.brand-mark i:nth-child(3){left:7px;bottom:7px;border-right:0;border-top:0}
+.brand-mark i:nth-child(4){right:7px;bottom:7px;border-left:0;border-top:0}
+.auth-brand-mark{width:42px;height:42px;margin-bottom:4px}
+.auth-brand-mark i:nth-child(1){left:8px;top:8px}.auth-brand-mark i:nth-child(2){right:8px;top:8px}.auth-brand-mark i:nth-child(3){left:8px;bottom:8px}.auth-brand-mark i:nth-child(4){right:8px;bottom:8px}
+
+/* Desktop sidebar now uses the same warm paper / black / orange system as the homepage */
+.sidebar{
+  background:#fffdf9;
+  color:var(--ink);
+  border-right:1px solid var(--line);
+  box-shadow:none;
+}
+.dashboard-brand{
+  color:var(--ink);
+  padding:0 8px 28px;
+  gap:11px;
+  font-size:20px;
+  font-weight:850;
+  letter-spacing:-.035em;
+}
+.dashboard-brand .brand-copy{display:grid;gap:1px;min-width:0}
+.dashboard-brand .brand-copy b{font-size:19px;line-height:1.05}
+.dashboard-brand small{color:var(--muted);font-size:10px;font-weight:500;letter-spacing:0;margin-top:2px}
+.sidebar nav{gap:5px}
+.sidebar .nav{color:#5f5a55;font-weight:650}
+.sidebar .nav:hover{background:#f6eee5;color:var(--ink)}
+.sidebar .nav.active{background:#17181b;color:#fff}
+.sidebar .nav.active::first-letter{color:var(--orange)}
+.sidebar .side-bottom .btn.full{background:#fff;border-color:var(--line);color:var(--ink)}
+.sidebar .side-bottom .btn.full:hover{background:#f6eee5}
+.sidebar .text-btn{color:var(--orange-dark);font-weight:750}
+
+.workspace{background:var(--bg)}
+.dash-top{background:transparent}
+.dash-top h1,.panel h3,.welcome h2,.qr-builder h2,.category-heading h2{color:var(--ink)}
+.eyebrow,.category-kicker{color:var(--orange-dark)}
+.btn{border-radius:9px}
+.btn.primary{background:#17181b;color:#fff;border-color:#17181b}
+.btn.primary:hover{background:#292a2e}
+.btn.secondary{background:#fffdf9;border-color:var(--line)}
+.panel,.stat,.menu-row,.dish-row{background:#fffdf9}
+.welcome{background:linear-gradient(135deg,#ffd6bd 0%,#fff0e5 62%,#fff8f1 100%);border:1px solid #efc5aa}
+.status-orb{background:rgba(255,253,249,.62)}
+.link-btn{color:var(--orange-dark);font-weight:750}
+
+/* Admin-client state now feels like part of the brand rather than a different UI */
+.admin-client-banner{
+  border-color:#efad79;
+  background:#fff0e4;
+  box-shadow:0 8px 22px rgba(107,57,25,.04)
+}
+.admin-client-banner b{color:var(--orange-dark)}
+.admin-client-banner span{color:#65574d}
+
+/* Sign-in / lock screens also match the public PlateCrop page */
+.login-screen{background:#fff8f1}
+.login-card{background:#fffdf9;border:1px solid var(--line);box-shadow:0 24px 70px rgba(45,29,16,.10)}
+.login-card h1{color:var(--ink)}
+
+@media(max-width:900px){
+  /* Bottom navigation uses the same light brand styling on mobile */
+  .sidebar{
+    background:rgba(255,253,249,.97);
+    border-top:1px solid var(--line);
+    border-right:0;
+    backdrop-filter:blur(16px);
+  }
+  .sidebar .nav{color:#69645f}
+  .sidebar .nav.active{background:#17181b;color:#fff}
+  .sidebar .nav:hover{background:#f6eee5;color:var(--ink)}
+}
