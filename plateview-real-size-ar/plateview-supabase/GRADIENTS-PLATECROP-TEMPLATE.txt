@@ -1,0 +1,12 @@
+PlateCrop — advanced menu colors + PlateCrop template
+
+New customization:
+- Solid or gradient menu background.
+- Solid or gradient dish cards/surfaces.
+- Solid or gradient sticky category bar.
+- Two colors can be selected for each gradient.
+- Global gradient direction selector.
+- New PlateCrop guest-menu template designed to match the public homepage and restaurant/admin dashboard: warm cream/peach, orange accents, strong black typography and PlateCrop-style cards.
+
+All settings remain per restaurant inside the existing menu_theme JSON.
+No Supabase SQL change is required.

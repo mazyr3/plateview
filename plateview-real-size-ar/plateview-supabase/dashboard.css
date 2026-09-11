@@ -585,3 +585,24 @@ body{background:var(--bg);color:var(--ink)}
   .sidebar .nav.active{background:#17181b;color:#fff}
   .sidebar .nav:hover{background:#f6eee5;color:var(--ink)}
 }
+
+
+/* Advanced gradients + PlateCrop template preview */
+.template-picker{grid-template-columns:repeat(4,minmax(0,1fr))}
+.platecrop-thumb{grid-template-columns:1fr 1.2fr;background:linear-gradient(135deg,#fff8f1,#ffd6bd)}
+.platecrop-thumb:before{content:'';grid-column:1/-1;height:18px;border-radius:6px;background:#f26430}
+.platecrop-thumb i:first-of-type{grid-row:2/4;background:#17181b}
+.platecrop-thumb i:nth-of-type(2){background:#fffdf9}
+.platecrop-thumb i:nth-of-type(3){background:#fff0e5}
+.platecrop-thumb i:nth-of-type(4){background:#f26430;height:14px}
+.gradient-direction-row{margin-bottom:12px}.gradient-direction-row label{display:grid;gap:6px;font-size:11px;color:var(--muted)}
+.gradient-direction-row select,.mini-select{height:35px;border:1px solid var(--line);border-radius:9px;background:#fff;color:var(--ink);padding:0 9px;font:inherit}
+.gradient-color-control{display:grid;gap:6px;align-content:start}.gradient-color-control>label{font-size:11px;color:var(--muted)}
+.gradient-pickers{display:grid;grid-template-columns:1fr 1fr;gap:7px}.gradient-pickers .color-setting{margin-top:0!important}.second-color{transition:.18s}.second-color.inactive-gradient{opacity:.3;filter:grayscale(.4)}
+.advanced-colors{align-items:start}.advanced-colors>label{align-self:start}
+.theme-preview{background:var(--p-bg)}.theme-preview-cats{background:var(--p-cat)}.theme-preview-products span,.theme-preview-top i{background:var(--p-surface)}
+.theme-preview[data-preview-template=platecrop]{border-color:#e7b48f;box-shadow:0 12px 30px rgba(73,41,18,.07)}
+.theme-preview[data-preview-template=platecrop] .theme-preview-top span{background:#f26430}.theme-preview[data-preview-template=platecrop] .theme-preview-top b{font-weight:900}.theme-preview[data-preview-template=platecrop] .theme-preview-products{grid-template-columns:1fr 1fr}.theme-preview[data-preview-template=platecrop] .theme-preview-products span{height:72px;border-radius:14px}
+@media(max-width:1100px){.template-picker{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:900px){.template-picker{display:flex;grid-template-columns:none}.template-card{flex:0 0 210px}}
+@media(max-width:560px){.gradient-pickers{grid-template-columns:1fr}.advanced-colors{grid-template-columns:1fr 1fr}.template-card{flex-basis:190px}}
