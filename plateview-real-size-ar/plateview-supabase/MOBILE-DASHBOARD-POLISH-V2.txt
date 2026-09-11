@@ -1,0 +1,11 @@
+PlateCrop mobile dashboard polish v2
+
+Changes:
+- View menu is now a dedicated visible top button on mobile.
+- + Restaurant moved into More on mobile to reduce header crowding.
+- Template cards swipe horizontally.
+- Settings color controls use a compact two-column layout on normal phones.
+- Settings panels are forced to the viewport width to prevent clipping/overflow.
+- Header takes less vertical space.
+
+No Supabase SQL is required.

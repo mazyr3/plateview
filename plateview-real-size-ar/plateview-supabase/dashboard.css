@@ -379,3 +379,105 @@
     font-size:12px;
   }
 }
+
+
+/* Mobile dashboard polish v2 */
+.mobile-quick-view{display:none}
+
+@media(max-width:900px){
+  html,body{max-width:100%;overflow-x:hidden}
+  .workspace{min-width:0}
+  .view,.panel,.settings-grid,.branding-settings,.theme-settings-panel{min-width:0;max-width:100%}
+
+  /* Keep the useful restaurant menu action visible instead of hiding it in More. */
+  .mobile-quick-view{display:inline-flex!important;align-items:center;justify-content:center}
+  .top-controls #newRestaurantBtn{display:none}
+  .top-controls .account-plan-badge{display:none}
+  .top-controls{
+    grid-template-columns:minmax(0,1fr) auto auto;
+    align-items:stretch;
+  }
+  .top-controls #restaurantSelect{grid-column:1/-1}
+  .top-controls .mobile-quick-view,
+  .top-controls #publishBtn,
+  .top-controls .mobile-more{min-width:0;width:100%}
+  .top-controls .mobile-quick-view,
+  .top-controls #publishBtn,
+  .top-controls .mobile-more summary{
+    min-height:44px;
+    justify-content:center;
+  }
+
+  /* Settings: remove the awkward wide desktop feel on phones. */
+  #view-settings .settings-grid{display:grid;grid-template-columns:1fr!important;gap:14px}
+  #view-settings .panel{width:100%;max-width:100%;padding:18px;border-radius:18px;overflow:hidden}
+  #view-settings .theme-settings-panel{grid-column:auto}
+  #view-settings .theme-settings-panel>h3{font-size:25px;line-height:1.08}
+  #view-settings .theme-settings-panel>.muted{font-size:13px;line-height:1.45}
+
+  /* Swipe through templates rather than stacking three very tall cards. */
+  #view-settings .template-picker{
+    display:flex;
+    gap:10px;
+    overflow-x:auto;
+    overscroll-behavior-x:contain;
+    scroll-snap-type:x proximity;
+    margin:16px -18px 20px;
+    padding:2px 18px 10px;
+    scrollbar-width:none;
+  }
+  #view-settings .template-picker::-webkit-scrollbar{display:none}
+  #view-settings .template-card{
+    flex:0 0 190px;
+    scroll-snap-align:start;
+    padding:10px;
+    border-radius:15px;
+  }
+  #view-settings .template-thumb{height:82px}
+
+  #view-settings .theme-customization{
+    display:grid;
+    grid-template-columns:1fr;
+    gap:20px;
+    padding:15px;
+    border-radius:15px;
+  }
+  #view-settings .theme-color-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 10px}
+  #view-settings .theme-color-grid label{min-width:0}
+  #view-settings .color-setting{display:flex;align-items:center;gap:8px;min-width:0}
+  #view-settings .color-setting input[type=color]{width:48px;min-width:48px;height:42px;padding:3px}
+  #view-settings .color-setting span{font-size:10px;overflow:hidden;text-overflow:ellipsis}
+  #view-settings .theme-form-grid{grid-template-columns:1fr 1fr;gap:10px}
+  #view-settings .theme-form-grid label:nth-child(2){grid-column:auto}
+  #view-settings .theme-form-grid label:nth-child(3){grid-column:1/-1}
+  #view-settings .theme-toggles{gap:5px}
+  #view-settings .theme-toggles label{padding:9px 0;border-top:1px solid var(--line)}
+  #view-settings .theme-toggles label:first-child{border-top:0}
+
+  #view-settings .theme-preview{margin-top:13px;padding:11px;border-radius:14px}
+  #view-settings .theme-panel-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  #view-settings .theme-panel-actions .btn{width:100%;min-width:0;padding:10px 8px;font-size:11px}
+
+  #view-settings .brand-upload-grid{grid-template-columns:1fr!important}
+  #view-settings .brand-upload-card{min-width:0}
+  #view-settings .hero-copy-grid{grid-template-columns:1fr!important}
+
+  /* Prevent the sticky header from covering too much of the settings editor. */
+  .dash-top{padding-top:10px;padding-bottom:10px;margin-bottom:12px}
+  .dash-top h1{font-size:24px;line-height:1;margin-bottom:0}
+  .dash-top>div:first-child small{font-size:9px}
+}
+
+@media(max-width:560px){
+  #view-settings .theme-color-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  #view-settings .theme-form-grid{grid-template-columns:1fr!important}
+  #view-settings .theme-form-grid label:nth-child(3){grid-column:auto}
+  #view-settings .theme-panel-actions{grid-template-columns:1fr}
+}
+
+@media(max-width:360px){
+  #view-settings .theme-color-grid{grid-template-columns:1fr!important}
+  .top-controls{grid-template-columns:1fr 1fr}
+  .top-controls #restaurantSelect{grid-column:1/-1}
+  .top-controls .mobile-more{grid-column:1/-1}
+}

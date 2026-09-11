@@ -81,7 +81,9 @@ function renderRestaurantSelect(){
   $('#restaurantSelect').innerHTML=restaurants.map(r=>`<option value="${r.id}" ${r.id===currentRestaurant?.id?'selected':''}>${r.name}</option>`).join('');
 }
 $('#restaurantSelect').onchange=()=>loadRestaurants($('#restaurantSelect').value);
-$('#newRestaurantBtn').onclick=()=>{$('#newRestaurantName').value='';$('#newRestaurantSlug').value='';$('#restaurantModal').showModal()};
+const openRestaurantCreator=()=>{$('#newRestaurantName').value='';$('#newRestaurantSlug').value='';$('#restaurantModal').showModal()};
+$('#newRestaurantBtn').onclick=openRestaurantCreator;
+if($('#mobileNewRestaurantBtn'))$('#mobileNewRestaurantBtn').onclick=()=>{if(!$('#newRestaurantBtn').disabled)openRestaurantCreator()};
 $('#createRestaurantBtn').onclick=async()=>{
   const name=$('#newRestaurantName').value.trim(); if(!name)return;
   try{
@@ -96,6 +98,10 @@ function renderAll(){
   const limit=accountAccess?.profile?.role==='admin'||plan==='legacy'?1000:(plan==='pro'?5:1);
   $('#newRestaurantBtn').disabled=restaurants.length>=limit;
   $('#newRestaurantBtn').title=restaurants.length>=limit?`Your ${plan} plan allows ${limit===1?'1 restaurant':limit+' restaurants'}. Manage billing to change plan.`:'Create another restaurant';
+  if($('#mobileNewRestaurantBtn')){
+    $('#mobileNewRestaurantBtn').disabled=$('#newRestaurantBtn').disabled;
+    $('#mobileNewRestaurantBtn').title=$('#newRestaurantBtn').title;
+  }
   if(!currentRestaurant){
     $('#welcomeName').textContent='Create your first restaurant';
     $('#overviewStats').innerHTML=stat('Restaurants',0);
@@ -105,7 +111,7 @@ function renderAll(){
   $('#welcomeName').textContent=currentRestaurant.name;
   $('#liveState').textContent=currentRestaurant.published?'Live':'Draft';
   $('#publishBtn').textContent=currentRestaurant.published?'Unpublish':'Publish';
-  $('#viewLive').href=liveUrl();if($('#mobileViewLive'))$('#mobileViewLive').href=liveUrl();
+  $('#viewLive').href=liveUrl();if($('#mobileViewLive'))$('#mobileViewLive').href=liveUrl();if($('#mobileQuickView'))$('#mobileQuickView').href=liveUrl();
   renderOverview();renderMenu();renderSettings();
 }
 function renderOverview(){
