@@ -164,3 +164,179 @@ body[data-template=platecrop] .menu-card:hover{transform:translateY(-3px);box-sh
 body[data-template=platecrop] .card-copy h3{font-family:Inter,ui-sans-serif,system-ui,sans-serif;font-weight:850;letter-spacing:-.035em}
 body[data-template=platecrop] .price{font-weight:850}
 @media(max-width:700px){body[data-template=platecrop] .hero{padding-top:34px;padding-bottom:36px}body[data-template=platecrop] .hero h1{font-size:clamp(52px,16vw,72px)}}
+
+
+/* PlateCrop template — refined phone/tablet layout */
+@media(max-width:760px){
+  body[data-template=platecrop] .topbar{
+    height:68px;
+    padding:0 16px;
+  }
+  body[data-template=platecrop] .brand{
+    min-width:0;
+    gap:9px;
+  }
+  body[data-template=platecrop] .brand-mark{
+    width:38px;
+    height:38px;
+    flex:0 0 38px;
+  }
+  body[data-template=platecrop] .brand-copy{
+    min-width:0;
+  }
+  body[data-template=platecrop] .brand-copy b{
+    max-width:190px;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+    font-size:16px;
+  }
+  body[data-template=platecrop] .brand-copy small{
+    display:none;
+  }
+  body[data-template=platecrop] .top-actions select{
+    padding:9px 12px;
+    min-width:68px;
+  }
+
+  body[data-template=platecrop] main{
+    width:100%;
+    overflow:hidden;
+  }
+
+  /* Most important fix: hero becomes one full-width column on phones. */
+  body[data-template=platecrop] .hero{
+    display:block;
+    min-height:0;
+    padding:34px 18px 34px;
+  }
+  body[data-template=platecrop] .hero-copy{
+    width:100%;
+    max-width:none;
+  }
+  body[data-template=platecrop] .hero-copy .eyebrow{
+    font-size:10px;
+    letter-spacing:.14em;
+    margin-bottom:12px;
+  }
+  body[data-template=platecrop] .hero h1{
+    max-width:620px;
+    margin:8px 0 18px;
+    font-size:clamp(46px,12vw,66px);
+    line-height:.91;
+    letter-spacing:-.058em;
+    overflow-wrap:normal;
+    word-break:normal;
+  }
+  body[data-template=platecrop] .hero h1 br{
+    display:none;
+  }
+  body[data-template=platecrop] .hero h1 span,
+  body[data-template=platecrop] .hero h1 em{
+    display:block;
+  }
+  body[data-template=platecrop] .hero-copy>p{
+    max-width:520px;
+    margin-bottom:0;
+    font-size:15px;
+    line-height:1.5;
+  }
+  body[data-template=platecrop] .hero-actions{
+    margin-top:22px;
+    gap:8px;
+    flex-wrap:wrap;
+  }
+  body[data-template=platecrop] .primary-btn,
+  body[data-template=platecrop] .secondary-btn{
+    min-height:48px;
+    padding:13px 17px;
+  }
+  body[data-template=platecrop] .hero-trust{
+    margin-top:14px;
+    font-size:10px;
+    line-height:1.35;
+  }
+
+  /* Bring the visual into view without making the first screen excessively tall. */
+  body[data-template=platecrop] .hero-card{
+    width:100%;
+    height:clamp(280px,76vw,390px);
+    margin-top:28px;
+    border-radius:22px;
+  }
+
+  body[data-template=platecrop] .menu-section{
+    padding:44px 18px 70px;
+  }
+  body[data-template=platecrop] .section-heading{
+    display:block;
+    margin-bottom:20px;
+  }
+  body[data-template=platecrop] .section-heading h2{
+    font-size:42px;
+  }
+  body[data-template=platecrop] .section-heading p{
+    margin-top:12px;
+    font-size:13px;
+  }
+  body[data-template=platecrop] .filter-wrap{
+    top:68px;
+    margin-left:-18px;
+    margin-right:-18px;
+    padding-left:18px;
+    padding-right:18px;
+  }
+  body[data-template=platecrop] .category-section{
+    padding-bottom:46px;
+  }
+  body[data-template=platecrop] .category-heading{
+    margin-bottom:16px;
+  }
+  body[data-template=platecrop] .category-heading h2{
+    font-size:30px;
+  }
+}
+
+@media(max-width:430px){
+  body[data-template=platecrop] .hero{
+    padding-left:16px;
+    padding-right:16px;
+  }
+  body[data-template=platecrop] .hero h1{
+    font-size:clamp(43px,13.4vw,56px);
+    max-width:100%;
+  }
+  body[data-template=platecrop] .hero-actions{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+  }
+  body[data-template=platecrop] .primary-btn,
+  body[data-template=platecrop] .secondary-btn{
+    width:100%;
+    padding-left:10px;
+    padding-right:10px;
+    font-size:13px;
+  }
+  body[data-template=platecrop] .hero-card{
+    height:300px;
+  }
+  body[data-template=platecrop] .menu-section{
+    padding-left:16px;
+    padding-right:16px;
+  }
+  body[data-template=platecrop] .filter-wrap{
+    margin-left:-16px;
+    margin-right:-16px;
+    padding-left:16px;
+    padding-right:16px;
+  }
+}
+
+@media(max-width:350px){
+  body[data-template=platecrop] .hero h1{
+    font-size:42px;
+  }
+  body[data-template=platecrop] .hero-actions{
+    grid-template-columns:1fr;
+  }
+}
