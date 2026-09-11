@@ -49,7 +49,7 @@ async function ensureAuth(){
     return;
   }
   $('#app').classList.remove('hidden');
-  if(accountAccess.profile?.role==='admin') $('#adminLink').classList.remove('hidden');
+  if(accountAccess.profile?.role==='admin'){ $('#adminLink').classList.remove('hidden'); $('#mobileAdminLink')?.classList.remove('hidden'); }
   const plan=(accountAccess.subscription?.plan||'active').toUpperCase();
   $('#accountPlanBadge').textContent=plan==='LEGACY'?'LEGACY ACCESS':plan;
   await loadRestaurants();
@@ -59,7 +59,9 @@ $('#loginForm').onsubmit=async e=>{
   try{await ARAPP.signIn($('#loginEmail').value,$('#loginPassword').value);location.reload()}
   catch(err){msg(err.message)}
 };
-$('#logoutBtn').onclick=async()=>{await ARAPP.signOut();location.reload()};
+const dashboardSignOut=async()=>{await ARAPP.signOut();location.reload()};
+$('#logoutBtn').onclick=dashboardSignOut;
+if($('#mobileLogoutBtn'))$('#mobileLogoutBtn').onclick=dashboardSignOut;
 $('#lockLogoutBtn').onclick=async()=>{await ARAPP.signOut();location.href='index.html'};
 $('#lockBillingBtn').onclick=async()=>{const b=$('#lockBillingBtn');b.disabled=true;b.textContent='Opening…';try{const d=await ARAPP.apiWithAuth('/api/create-portal-session',{method:'POST'});location.href=d.url}catch(e){$('#lockMessage').textContent=e.message;b.disabled=false;b.textContent='Manage billing'}};
 
@@ -103,7 +105,7 @@ function renderAll(){
   $('#welcomeName').textContent=currentRestaurant.name;
   $('#liveState').textContent=currentRestaurant.published?'Live':'Draft';
   $('#publishBtn').textContent=currentRestaurant.published?'Unpublish':'Publish';
-  $('#viewLive').href=liveUrl();
+  $('#viewLive').href=liveUrl();if($('#mobileViewLive'))$('#mobileViewLive').href=liveUrl();
   renderOverview();renderMenu();renderSettings();
 }
 function renderOverview(){
