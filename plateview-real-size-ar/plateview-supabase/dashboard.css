@@ -481,3 +481,11 @@
   .top-controls #restaurantSelect{grid-column:1/-1}
   .top-controls .mobile-more{grid-column:1/-1}
 }
+
+
+/* Admin client editing banner */
+.admin-client-banner{margin:14px 0 0;padding:11px 14px;border:1px solid #e0b26d;border-radius:14px;background:#fff5df;display:flex;align-items:center;justify-content:space-between;gap:14px}
+.admin-client-banner>div{display:grid;gap:2px}
+.admin-client-banner b{font-size:12px;color:#7a4318;text-transform:uppercase;letter-spacing:.06em}
+.admin-client-banner span{font-size:12px;color:#65513c}
+@media(max-width:700px){.admin-client-banner{margin-top:8px;align-items:flex-start}.admin-client-banner .btn{padding:8px 9px;font-size:10px;white-space:nowrap}.admin-client-banner span{font-size:10px}}

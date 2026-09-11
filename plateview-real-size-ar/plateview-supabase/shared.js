@@ -88,6 +88,20 @@ const ARAPP = (() => {
   async function restaurantsForOwner(){
     if(!supabase) return [];
     const s=await session(); if(!s) return [];
+    let isAdmin=false;
+    try{
+      const {data:p,error:pe}=await supabase.from('profiles').select('role').eq('user_id',s.user.id).maybeSingle();
+      if(!pe)isAdmin=p?.role==='admin';
+    }catch(e){}
+    if(isAdmin){
+      const [{data,error},{data:profiles,error:profileError}]=await Promise.all([
+        supabase.from('restaurants').select('*').order('created_at'),
+        supabase.from('profiles').select('user_id,email')
+      ]);
+      if(error)throw error;
+      const emailMap=new Map((profileError?[]:(profiles||[])).map(x=>[x.user_id,x.email||'Client']));
+      return (data||[]).map(r=>({...r,_owner_email:emailMap.get(r.owner_id)||'Client'}));
+    }
     const {data,error}=await supabase.from('restaurants').select('*').eq('owner_id',s.user.id).order('created_at');
     if(error) throw error;
     return data || [];

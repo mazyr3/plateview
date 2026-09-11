@@ -52,7 +52,10 @@ async function ensureAuth(){
   if(accountAccess.profile?.role==='admin'){ $('#adminLink').classList.remove('hidden'); $('#mobileAdminLink')?.classList.remove('hidden'); }
   const plan=(accountAccess.subscription?.plan||'active').toUpperCase();
   $('#accountPlanBadge').textContent=plan==='LEGACY'?'LEGACY ACCESS':plan;
-  await loadRestaurants();
+  const params=new URLSearchParams(location.search);
+  await loadRestaurants(params.get('restaurant'));
+  const requestedView=params.get('view');
+  if(requestedView&&['overview','menu','qr','analytics','settings','billing'].includes(requestedView))setView(requestedView);
 }
 $('#loginForm').onsubmit=async e=>{
   e.preventDefault();msg('Signing in…');
@@ -78,7 +81,8 @@ async function loadRestaurants(preferredId=null){
   renderAll();
 }
 function renderRestaurantSelect(){
-  $('#restaurantSelect').innerHTML=restaurants.map(r=>`<option value="${r.id}" ${r.id===currentRestaurant?.id?'selected':''}>${r.name}</option>`).join('');
+  const admin=accountAccess?.profile?.role==='admin';
+  $('#restaurantSelect').innerHTML=restaurants.map(r=>`<option value="${r.id}" ${r.id===currentRestaurant?.id?'selected':''}>${r.name}${admin&&r._owner_email?` — ${r._owner_email}`:''}</option>`).join('');
 }
 $('#restaurantSelect').onchange=()=>loadRestaurants($('#restaurantSelect').value);
 const openRestaurantCreator=()=>{$('#newRestaurantName').value='';$('#newRestaurantSlug').value='';$('#restaurantModal').showModal()};
@@ -94,13 +98,22 @@ $('#createRestaurantBtn').onclick=async()=>{
 
 function renderAll(){
   renderRestaurantSelect();
+  const isAdmin=accountAccess?.profile?.role==='admin';
+  const banner=$('#adminClientBanner');
+  if(isAdmin&&currentRestaurant){
+    banner?.classList.remove('hidden');
+    const owner=currentRestaurant._owner_email||'client account';
+    if($('#adminClientText'))$('#adminClientText').textContent=`Editing ${currentRestaurant.name} for ${owner}. Changes are applied directly to their live restaurant account.`;
+  }else banner?.classList.add('hidden');
   const plan=(accountAccess?.subscription?.plan||'legacy').toLowerCase();
   const limit=accountAccess?.profile?.role==='admin'||plan==='legacy'?1000:(plan==='pro'?5:1);
-  $('#newRestaurantBtn').disabled=restaurants.length>=limit;
-  $('#newRestaurantBtn').title=restaurants.length>=limit?`Your ${plan} plan allows ${limit===1?'1 restaurant':limit+' restaurants'}. Manage billing to change plan.`:'Create another restaurant';
+  $('#newRestaurantBtn').disabled=isAdmin||restaurants.length>=limit;
+  $('#newRestaurantBtn').title=isAdmin?'Create client restaurants from the client account/onboarding so ownership and billing stay correct.':(restaurants.length>=limit?`Your ${plan} plan allows ${limit===1?'1 restaurant':limit+' restaurants'}. Manage billing to change plan.`:'Create another restaurant');
+  if(isAdmin)$('#newRestaurantBtn').classList.add('hidden');else $('#newRestaurantBtn').classList.remove('hidden');
   if($('#mobileNewRestaurantBtn')){
     $('#mobileNewRestaurantBtn').disabled=$('#newRestaurantBtn').disabled;
     $('#mobileNewRestaurantBtn').title=$('#newRestaurantBtn').title;
+    $('#mobileNewRestaurantBtn').classList.toggle('hidden',isAdmin);
   }
   if(!currentRestaurant){
     $('#welcomeName').textContent='Create your first restaurant';

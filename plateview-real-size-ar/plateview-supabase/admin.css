@@ -185,3 +185,21 @@
     grid-template-columns:96px minmax(0,1fr);
   }
 }
+
+
+/* Admin client restaurant manager */
+.admin-restaurants{display:grid;gap:8px;min-width:260px}
+.admin-restaurant-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:9px 10px;border:1px solid #e8e1d6;border-radius:11px;background:#fff}
+.admin-restaurant-row>div:first-child{min-width:0;display:grid;gap:2px}
+.admin-restaurant-row b{font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.admin-restaurant-row small{font-size:10px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.admin-restaurant-actions{display:flex;gap:5px;flex:0 0 auto}
+.admin-restaurant-actions .action{text-decoration:none;display:inline-flex;align-items:center;justify-content:center;padding:7px 9px;font-size:10px;white-space:nowrap}
+.admin-restaurant-actions .manage{background:#171713;color:#fff;border-color:#171713}
+.muted-admin{font-size:11px;color:var(--muted)}
+@media(max-width:900px){
+  .admin-restaurants{min-width:0;width:100%}
+  .admin-restaurant-row{display:grid;gap:8px}
+  .admin-restaurant-actions{display:grid;grid-template-columns:1fr auto}
+  .admin-restaurant-actions .action{min-height:40px}
+}
