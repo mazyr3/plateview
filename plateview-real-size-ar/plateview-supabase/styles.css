@@ -340,3 +340,22 @@ body[data-template=platecrop] .price{font-weight:850}
     grid-template-columns:1fr;
   }
 }
+
+
+/* Mobile scroll-jump stability fix */
+#filters{
+  overflow-x:auto;
+  overflow-y:hidden;
+  overscroll-behavior-x:contain;
+  overscroll-behavior-y:none;
+  scroll-behavior:smooth;
+  -webkit-overflow-scrolling:touch;
+  scrollbar-width:none;
+}
+#filters::-webkit-scrollbar{display:none}
+.filter-wrap{overflow:hidden}
+@media(max-width:760px){
+  /* Prevent dynamic model/card sizing from changing the document height mid-scroll. */
+  .category-grid .model-preview{contain:layout paint}
+  .category-grid model-viewer{display:block;width:100%;height:100%}
+}

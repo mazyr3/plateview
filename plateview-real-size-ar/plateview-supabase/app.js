@@ -89,13 +89,22 @@ function setHero(){
 let categoryScrollRaf=0;
 let categoryScrollLockUntil=0;
 function menuCategories(){return [...new Set(items.filter(i=>i.published).map(i=>i.category||'Other'))]}
+function centerActiveCategoryHorizontally(button){
+  const scroller=$('#filters');
+  if(!button||!scroller)return;
+  const target=button.offsetLeft-(scroller.clientWidth-button.offsetWidth)/2;
+  const max=Math.max(0,scroller.scrollWidth-scroller.clientWidth);
+  scroller.scrollTo({left:Math.max(0,Math.min(max,target)),behavior:'smooth'});
+}
 function setActiveCategory(category,bringIntoView=true){
   activeCategory=category;
   const buttons=$$('.filter-btn');
   buttons.forEach(b=>b.classList.toggle('active',b.dataset.cat===category));
   if(bringIntoView){
     const active=buttons.find(b=>b.dataset.cat===category);
-    active?.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'});
+    // Only move the horizontal category strip. scrollIntoView() can also move the
+    // page vertically on mobile browsers, which caused the menu to jump upward.
+    centerActiveCategoryHorizontally(active);
   }
 }
 function categoryStickyOffset(){
