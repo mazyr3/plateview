@@ -201,7 +201,11 @@ body[data-template=platecrop] .price{font-weight:850}
 
   body[data-template=platecrop] main{
     width:100%;
-    overflow:hidden;
+    max-width:100%;
+    overflow:visible;
+  }
+  body[data-template=platecrop]{
+    overflow-x:hidden;
   }
 
   /* Most important fix: hero becomes one full-width column on phones. */
@@ -358,4 +362,19 @@ body[data-template=platecrop] .price{font-weight:850}
   /* Prevent dynamic model/card sizing from changing the document height mid-scroll. */
   .category-grid .model-preview{contain:layout paint}
   .category-grid model-viewer{display:block;width:100%;height:100%}
+}
+
+
+/* Sticky category bar regression fix
+   Keep the category navigation attached to the viewport while the menu scrolls. */
+@media(max-width:760px){
+  body[data-template=platecrop] .filter-wrap:not(.category-static){
+    position:-webkit-sticky;
+    position:sticky;
+    top:68px;
+    z-index:60;
+  }
+  body[data-template=platecrop] .menu-section{
+    overflow:visible;
+  }
 }
