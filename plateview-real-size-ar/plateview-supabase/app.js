@@ -241,7 +241,7 @@ function openDish(id){
   resetViewerInteraction('dishViewer');
   const t=tItem(activeDish), viewer=$('#dishViewer'), photo=$('#dishPhoto'), wrap=$('#dishViewerWrap');
   const detailVisual=resolvedDishVisual(activeDish,'detail');
-  clearInternalModelScale(viewer);viewer.src=activeDish.model_url||'';applyShowcaseScale(viewer,activeDish);
+  clearInternalModelScale(viewer);viewer.style.removeProperty('--showcase-scale');viewer.classList.remove('showcase-scaled-viewer');viewer.src=activeDish.model_url||'';applyShowcaseScale(viewer,activeDish);
   if(photo){
     photo.src=activeDish.photo_url||'';
     photo.alt=t.name||'Dish photo';
@@ -273,7 +273,14 @@ async function launchAR(){
     await ARAPP.track(restaurant.id,'ar_launch',activeDish.id,params.get('table'));
     await viewer.activateAR();
   }catch(e){alert('AR could not start. Try opening PlateCrop in Chrome on Android or Safari on iPhone.');}
-  finally{button.classList.remove('loading')}
+  finally{
+    // Native AR may leave the model-viewer scale at the real-world AR scale.
+    // Restore the normal webpage preview every time so reopening the same dish
+    // always looks identical.
+    clearInternalModelScale(viewer);
+    applyShowcaseScale(viewer,activeDish);
+    button.classList.remove('loading');
+  }
 }
 function closeDish(){if($('#dishDialog').open)$('#dishDialog').close();document.body.classList.remove('dialog-open')}
 async function boot(){
@@ -291,9 +298,9 @@ $('#dishDialog').addEventListener('click',e=>{if(e.target===$('#dishDialog'))clo
 $('#dishDialog').addEventListener('close',()=>document.body.classList.remove('dialog-open'));
 $('#demoArBtn').onclick=()=>{const i=heroItem()||items.find(x=>x.available&&x.model_url);if(i)openDish(i.id)};
 $('#mobileArTrigger').onclick=launchAR;
-$('#dishViewer').addEventListener('load',()=>{if(activeDish){applyRealScale($('#dishViewer'),activeDish);applyShowcaseScale($('#dishViewer'),activeDish);updateArCapability()}});
+$('#dishViewer').addEventListener('load',()=>{if(activeDish){clearInternalModelScale($('#dishViewer'));applyShowcaseScale($('#dishViewer'),activeDish);updateArCapability()}});
 $('#arSlotBtn').onclick=()=>{if(activeDish){applyRealScale($('#dishViewer'),activeDish);ARAPP.track(restaurant.id,'ar_launch',activeDish.id,params.get('table'))}};
-$('#dishViewer').addEventListener('ar-status',e=>{if(activeDish&&['not-presenting','failed'].includes(e.detail?.status)){applyRealScale($('#dishViewer'),activeDish);applyShowcaseScale($('#dishViewer'),activeDish)}});
+$('#dishViewer').addEventListener('ar-status',e=>{if(activeDish&&['not-presenting','failed'].includes(e.detail?.status)){clearInternalModelScale($('#dishViewer'));applyShowcaseScale($('#dishViewer'),activeDish)}});
 
 $('#langSelect').onchange=()=>{lang=$('#langSelect').value;activeCategory='All';applyBrand();renderFilters();renderMenu()};
 boot().catch(e=>{console.error(e);document.body.innerHTML=`<main style="padding:10vw;font-family:system-ui"><h1>Could not load menu</h1><p>${esc(e.message)}</p></main>`});
