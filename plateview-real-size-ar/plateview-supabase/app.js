@@ -1,6 +1,7 @@
 const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
 const params=new URLSearchParams(location.search);
 let restaurant=null, items=[], lang='en', activeCategory='All', activeDish=null;
+let arSessionActive=false;
 
 const MENU_TEMPLATE_DEFAULTS={
   editorial:{template:'editorial',background:'#f7f4ed',background_2:'#efe6d8',background_mode:'solid',surface:'#fffdf8',surface_2:'#f6efe5',surface_mode:'solid',text:'#171713',muted:'#746f65',category_background:'#f7f4ed',category_background_2:'#efe6d8',category_background_mode:'solid',category_text:'#171713',gradient_angle:135,card_radius:24,density:'comfortable',mobile_columns:1,show_hero:true,sticky_categories:true,show_feature_strip:true},
@@ -193,8 +194,6 @@ function showcaseScalePercent(item){
 }
 function applyShowcaseScale(viewer,item){
   if(!viewer)return;
-  // IMPORTANT: showcase size is visual-only. Do not change model-viewer's
-  // internal `scale`, because that same scale is used by native camera AR.
   const factor=showcaseScalePercent(item)/100;
   viewer.style.setProperty('--showcase-scale',String(factor));
   viewer.classList.add('showcase-scaled-viewer');
@@ -204,25 +203,51 @@ function clearInternalModelScale(viewer){
   viewer.scale='1 1 1';
   viewer.setAttribute('scale','1 1 1');
 }
+function cacheNativeFootprint(viewer){
+  if(!viewer)return 0;
+  try{
+    clearInternalModelScale(viewer);
+    const d=viewer.getDimensions();
+    // Real-world dish width means the largest horizontal footprint, not just
+    // the GLB's X axis. This is much more reliable for models exported rotated.
+    const footprint=Math.max(Number(d?.x)||0,Number(d?.z)||0);
+    if(footprint>0&&Number.isFinite(footprint)){
+      viewer.dataset.nativeFootprintM=String(footprint);
+      return footprint;
+    }
+  }catch(e){console.warn('Could not read native model dimensions',e)}
+  return 0;
+}
+function nativeFootprintM(viewer){
+  const cached=Number(viewer?.dataset?.nativeFootprintM)||0;
+  return cached>0?cached:cacheNativeFootprint(viewer);
+}
 function applyRealScale(viewer,item){
+  if(!viewer)return false;
   const targetCm=targetWidthCm(item);
-  if(!viewer)return;
-  // Real-world width controls ONLY the internal model scale used by AR.
-  // Always measure from an unscaled model so the showcase setting cannot leak
-  // into AR calibration.
   clearInternalModelScale(viewer);
   if(!targetCm){
     $('#arSizeNote').textContent='Real-size calibration not set';
-    return;
+    return false;
   }
-  try{
-    const d=viewer.getDimensions();
-    if(!d?.x||!Number.isFinite(d.x))return;
-    const factor=(targetCm/100)/d.x;
-    viewer.scale=`${factor} ${factor} ${factor}`;
-    viewer.setAttribute('scale',`${factor} ${factor} ${factor}`);
-    $('#arSizeNote').textContent=`≈ ${targetCm} cm wide · camera AR size`;
-  }catch(e){console.warn('Could not calibrate model scale',e)}
+  const nativeM=nativeFootprintM(viewer);
+  if(!(nativeM>0)){
+    $('#arSizeNote').textContent='Could not read native model size';
+    return false;
+  }
+  const factor=(targetCm/100)/nativeM;
+  if(!(factor>0)&&!Number.isFinite(factor))return false;
+  viewer.scale=`${factor} ${factor} ${factor}`;
+  viewer.setAttribute('scale',`${factor} ${factor} ${factor}`);
+  viewer.dataset.arScaleFactor=String(factor);
+  $('#arSizeNote').textContent=`≈ ${targetCm} cm wide · locked camera AR size`;
+  return true;
+}
+function restoreShowcaseViewer(viewer=$('#dishViewer')){
+  if(!viewer)return;
+  arSessionActive=false;
+  clearInternalModelScale(viewer);
+  if(activeDish)applyShowcaseScale(viewer,activeDish);
 }
 function updateArCapability(){
   const viewer=$('#dishViewer'), btn=$('#mobileArTrigger');
@@ -241,7 +266,10 @@ function openDish(id){
   resetViewerInteraction('dishViewer');
   const t=tItem(activeDish), viewer=$('#dishViewer'), photo=$('#dishPhoto'), wrap=$('#dishViewerWrap');
   const detailVisual=resolvedDishVisual(activeDish,'detail');
-  clearInternalModelScale(viewer);viewer.style.removeProperty('--showcase-scale');viewer.classList.remove('showcase-scaled-viewer');viewer.src=activeDish.model_url||'';applyShowcaseScale(viewer,activeDish);
+  clearInternalModelScale(viewer);viewer.style.removeProperty('--showcase-scale');viewer.classList.remove('showcase-scaled-viewer');
+  const nextSrc=activeDish.model_url||'';
+  if(viewer.src!==nextSrc){delete viewer.dataset.nativeFootprintM;delete viewer.dataset.arScaleFactor;viewer.src=nextSrc}
+  applyShowcaseScale(viewer,activeDish);
   if(photo){
     photo.src=activeDish.photo_url||'';
     photo.alt=t.name||'Dish photo';
@@ -265,20 +293,18 @@ function openDish(id){
 }
 async function launchAR(){
   if(!activeDish?.model_url){alert('This dish does not have a 3D model yet.');return;}
-  const button=$('#mobileArTrigger'), viewer=$('#dishViewer'); button.classList.add('loading');
+  const button=$('#mobileArTrigger'), viewer=$('#dishViewer');
+  button.classList.add('loading');
   try{
-    // Internal model scale is calibrated for AR; the separate showcase size is
-    // only a CSS transform on the on-page viewer and cannot affect camera AR.
-    applyRealScale(viewer,activeDish);
+    if(!applyRealScale(viewer,activeDish))throw new Error('Could not calibrate AR size');
     await ARAPP.track(restaurant.id,'ar_launch',activeDish.id,params.get('table'));
+    // Do NOT reset scale in finally. activateAR() can resolve while AR is still
+    // running, especially with WebXR. Resetting here was the cause of size jumps.
     await viewer.activateAR();
-  }catch(e){alert('AR could not start. Try opening PlateCrop in Chrome on Android or Safari on iPhone.');}
-  finally{
-    // Native AR may leave the model-viewer scale at the real-world AR scale.
-    // Restore the normal webpage preview every time so reopening the same dish
-    // always looks identical.
-    clearInternalModelScale(viewer);
-    applyShowcaseScale(viewer,activeDish);
+  }catch(e){
+    restoreShowcaseViewer(viewer);
+    alert('AR could not start. Try opening PlateCrop in Chrome on Android or Safari on iPhone.');
+  }finally{
     button.classList.remove('loading');
   }
 }
@@ -298,9 +324,37 @@ $('#dishDialog').addEventListener('click',e=>{if(e.target===$('#dishDialog'))clo
 $('#dishDialog').addEventListener('close',()=>document.body.classList.remove('dialog-open'));
 $('#demoArBtn').onclick=()=>{const i=heroItem()||items.find(x=>x.available&&x.model_url);if(i)openDish(i.id)};
 $('#mobileArTrigger').onclick=launchAR;
-$('#dishViewer').addEventListener('load',()=>{if(activeDish){clearInternalModelScale($('#dishViewer'));applyShowcaseScale($('#dishViewer'),activeDish);updateArCapability()}});
-$('#arSlotBtn').onclick=()=>{if(activeDish){applyRealScale($('#dishViewer'),activeDish);ARAPP.track(restaurant.id,'ar_launch',activeDish.id,params.get('table'))}};
-$('#dishViewer').addEventListener('ar-status',e=>{if(activeDish&&['not-presenting','failed'].includes(e.detail?.status)){clearInternalModelScale($('#dishViewer'));applyShowcaseScale($('#dishViewer'),activeDish)}});
+$('#dishViewer').addEventListener('load',()=>{
+  if(activeDish){
+    const viewer=$('#dishViewer');
+    cacheNativeFootprint(viewer);
+    clearInternalModelScale(viewer);
+    applyShowcaseScale(viewer,activeDish);
+    updateArCapability();
+  }
+});
+$('#arSlotBtn').onclick=()=>{
+  if(activeDish){
+    const viewer=$('#dishViewer');
+    applyRealScale(viewer,activeDish);
+    ARAPP.track(restaurant.id,'ar_launch',activeDish.id,params.get('table'));
+  }
+};
+$('#dishViewer').addEventListener('ar-status',e=>{
+  const status=e.detail?.status;
+  if(status==='session-started'||status==='object-placed')arSessionActive=true;
+  if(activeDish&&['not-presenting','failed'].includes(status))restoreShowcaseViewer($('#dishViewer'));
+});
+// Native Scene Viewer / Quick Look backgrounds the page. When the user returns,
+// restore the webpage viewer. This is a fallback for browsers that don't reliably
+// emit ar-status=not-presenting after returning from the native AR app.
+document.addEventListener('visibilitychange',()=>{
+  if(document.visibilityState==='visible'&&activeDish){
+    setTimeout(()=>{
+      if(!arSessionActive||document.visibilityState==='visible')restoreShowcaseViewer($('#dishViewer'));
+    },250);
+  }
+});
 
 $('#langSelect').onchange=()=>{lang=$('#langSelect').value;activeCategory='All';applyBrand();renderFilters();renderMenu()};
 boot().catch(e=>{console.error(e);document.body.innerHTML=`<main style="padding:10vw;font-family:system-ui"><h1>Could not load menu</h1><p>${esc(e.message)}</p></main>`});

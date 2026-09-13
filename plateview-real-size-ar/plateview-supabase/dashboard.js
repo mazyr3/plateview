@@ -344,13 +344,13 @@ async function updateCalibrationPreview(){
     viewer.scale='1 1 1';
     viewer.setAttribute('scale','1 1 1');
     const d=viewer.getDimensions();
-    const nativeCm=d.x*100;
+    const nativeCm=Math.max(Number(d.x)||0,Number(d.z)||0)*100;
     const target=Number($('#dishWidthCm').value);
     if(target>0 && nativeCm>0){
       const factor=target/nativeCm;
-      $('#assetState').textContent=`Native model width: ${nativeCm.toFixed(1)} cm · camera AR target: ${target.toFixed(1)} cm · AR scale ×${factor.toFixed(3)}`;
+      $('#assetState').textContent=`Native horizontal footprint: ${nativeCm.toFixed(1)} cm · camera AR target: ${target.toFixed(1)} cm · AR scale ×${factor.toFixed(3)}`;
     }else if(nativeCm>0){
-      $('#assetState').textContent=`Detected native model width: ${nativeCm.toFixed(1)} cm. Enter the real dish width for accurate camera AR sizing.`;
+      $('#assetState').textContent=`Detected native horizontal footprint: ${nativeCm.toFixed(1)} cm. Enter the real dish width for accurate camera AR sizing.`;
     }
   }catch(e){}
 }
