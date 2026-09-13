@@ -378,3 +378,13 @@ body[data-template=platecrop] .price{font-weight:850}
     overflow:visible;
   }
 }
+
+
+/* Separate on-page 3D showcase size from native AR model scale.
+   CSS transforms affect only the webpage renderer, not the real-world AR model. */
+.viewer-wrap{overflow:hidden}
+.showcase-scaled-viewer{
+  transform:scale(var(--showcase-scale,1));
+  transform-origin:center center;
+  transition:transform .18s ease;
+}

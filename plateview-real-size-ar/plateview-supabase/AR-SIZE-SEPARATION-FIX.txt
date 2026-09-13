@@ -1,0 +1,12 @@
+PlateCrop — AR size / 3D showcase separation fix
+
+Problem fixed:
+The old implementation used model-viewer `scale` for both the on-page 3D showcase and camera AR. Because model-viewer reuses that model scale in AR, changing "3D showcase size (%)" also changed the real-world AR size.
+
+New behavior:
+- Real dish width (cm): controls the internal 3D model scale used by camera AR.
+- 3D showcase size (%): uses a CSS-only visual transform for the webpage preview. It no longer changes camera AR size.
+- AR calibration is always calculated from the GLB's native dimensions at internal scale 1.
+- The editor calibration message now clearly reports native model width, AR target width, and AR scale factor.
+
+No Supabase SQL change is required. Existing saved width_cm and showcase_scale values continue to work.

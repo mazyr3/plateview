@@ -330,22 +330,27 @@ function applyEditorShowcaseScale(){
   if(!viewer)return;
   const pct=Math.max(40,Math.min(250,Number($('#dishShowcaseScale').value)||100));
   const factor=pct/100;
-  viewer.scale=`${factor} ${factor} ${factor}`;
-  viewer.setAttribute('scale',`${factor} ${factor} ${factor}`);
+  // Visual editor preview only — never touch the model's internal scale.
+  viewer.style.setProperty('--showcase-scale',String(factor));
+  viewer.classList.add('showcase-scaled-viewer');
 }
 async function updateCalibrationPreview(){
   const viewer=$('#editorModel');
   applyEditorShowcaseScale();
   if(!viewer?.src)return;
   try{
+    // Measure the native GLB dimensions at scale 1, independently from the
+    // visual showcase percentage.
+    viewer.scale='1 1 1';
+    viewer.setAttribute('scale','1 1 1');
     const d=viewer.getDimensions();
     const nativeCm=d.x*100;
     const target=Number($('#dishWidthCm').value);
     if(target>0 && nativeCm>0){
       const factor=target/nativeCm;
-      $('#assetState').textContent=`Model width: ${nativeCm.toFixed(1)} cm · AR target: ${target.toFixed(1)} cm · scale ×${factor.toFixed(3)}`;
+      $('#assetState').textContent=`Native model width: ${nativeCm.toFixed(1)} cm · camera AR target: ${target.toFixed(1)} cm · AR scale ×${factor.toFixed(3)}`;
     }else if(nativeCm>0){
-      $('#assetState').textContent=`Detected model width: ${nativeCm.toFixed(1)} cm. Enter the real dish width for accurate AR sizing.`;
+      $('#assetState').textContent=`Detected native model width: ${nativeCm.toFixed(1)} cm. Enter the real dish width for accurate camera AR sizing.`;
     }
   }catch(e){}
 }
