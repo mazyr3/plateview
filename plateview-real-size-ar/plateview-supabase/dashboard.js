@@ -1,6 +1,6 @@
 
 const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
-let restaurants=[], currentRestaurant=null, items=[], editingId=null, editLang='en', pendingModel=null, pendingPhoto=null, pendingLogo=null, pendingHeroImage=null, pendingHeroVideo=null, removeLogoRequested=false, removeHeroRequested=false, removeHeroVideoRequested=false, accountAccess=null;
+let restaurants=[], currentRestaurant=null, items=[], editingId=null, editLang='en', pendingModel=null, pendingPhoto=null, modelPreviewUrl=null, photoPreviewUrl=null, pendingLogo=null, pendingHeroImage=null, pendingHeroVideo=null, removeLogoRequested=false, removeHeroRequested=false, removeHeroVideoRequested=false, accountAccess=null;
 
 const MENU_TEMPLATE_DEFAULTS={
   editorial:{template:'editorial',background:'#f7f4ed',background_2:'#efe6d8',background_mode:'solid',surface:'#fffdf8',surface_2:'#f6efe5',surface_mode:'solid',text:'#171713',muted:'#746f65',category_background:'#f7f4ed',category_background_2:'#efe6d8',category_background_mode:'solid',category_text:'#171713',gradient_angle:135,card_radius:24,density:'comfortable',mobile_columns:1,show_hero:true,sticky_categories:true,show_feature_strip:true},
@@ -303,8 +303,36 @@ $('#copyEnglishBtn').onclick=()=>{
 function updateAllergenCount(){const n=$$('#allergenGrid input:checked').length;$('#allergenCount').textContent=`${n} selected`;}
 $('#clearAllergensBtn').onclick=()=>{$$('#allergenGrid input').forEach(x=>x.checked=false);updateAllergenCount()};
 
+function revokeDishPreviewUrls(){
+  if(modelPreviewUrl){URL.revokeObjectURL(modelPreviewUrl);modelPreviewUrl=null}
+  if(photoPreviewUrl){URL.revokeObjectURL(photoPreviewUrl);photoPreviewUrl=null}
+}
+function resetDishUploadInputs(){
+  pendingModel=null;pendingPhoto=null;
+  const modelInput=$('#modelUpload'),photoInput=$('#photoUpload');
+  if(modelInput)modelInput.value='';
+  if(photoInput)photoInput.value='';
+}
+function setEditorModelSource(url=''){
+  const viewer=$('#editorModel');
+  if(!viewer)return;
+  viewer.style.removeProperty('--showcase-scale');
+  viewer.classList.remove('showcase-scaled-viewer');
+  viewer.scale='1 1 1';
+  viewer.setAttribute('scale','1 1 1');
+  // Removing the attribute first is important: some model-viewer/browser
+  // combinations keep rendering the previous GLB when src is merely set to ''.
+  viewer.removeAttribute('src');
+  if(url)viewer.setAttribute('src',url);
+}
+
 function openEditor(id=null){
-  editingId=id;editLang='en';pendingModel=null;pendingPhoto=null;
+  // Each editor session starts completely clean. File inputs are DOM state and
+  // otherwise keep the filename from the previous dish even after pendingModel
+  // is reset, which made old GLBs appear to belong to a new menu item.
+  revokeDishPreviewUrls();
+  resetDishUploadInputs();
+  editingId=id;editLang='en';
   let item=id?items.find(i=>i.id===id):null;
   if(!item){
     item={restaurant_id:currentRestaurant.id,category:'Mains',price:0,available:true,published:true,model_url:'',photo_url:'',allergens:[],tags:[],translations:{en:{name:'',description:''},nl:{name:'',description:''},fr:{name:'',description:''}},sort_order:items.length};
@@ -317,13 +345,35 @@ function openEditor(id=null){
   $('#allergenGrid').innerHTML=ARAPP.allergens.map(a=>`<label><input type="checkbox" value="${a}" ${(item.allergens||[]).includes(a)?'checked':''}> ${a}</label>`).join('');
   $$('#allergenGrid input').forEach(x=>x.addEventListener('change',updateAllergenCount));updateAllergenCount();
   $('#deleteDish').classList.toggle('hidden',!id);$('#duplicateDish').classList.toggle('hidden',!id);
-  $('#editorModel').src=item.model_url||'';$('#modelEmpty').classList.toggle('hidden',!!item.model_url);
+  setEditorModelSource(item.model_url||'');$('#modelEmpty').classList.toggle('hidden',!!item.model_url);
   $('#photoPreview').innerHTML=item.photo_url?`<img src="${item.photo_url}" alt="Dish photo preview">`:'<span>No photo</span>';
   $('#assetState').textContent=item.model_url?'3D model stored in cloud.':'No 3D model uploaded yet.';
   renderTranslation();$('#dishModal').showModal();
 }
-$('#modelUpload').onchange=e=>{pendingModel=e.target.files[0]||null;if(pendingModel){const u=URL.createObjectURL(pendingModel);$('#editorModel').src=u;$('#modelEmpty').classList.add('hidden');$('#assetState').textContent=`Ready to upload: ${pendingModel.name}`}};
-$('#photoUpload').onchange=e=>{pendingPhoto=e.target.files[0]||null;if(pendingPhoto){const u=URL.createObjectURL(pendingPhoto);$('#photoPreview').innerHTML=`<img src="${u}" alt="Dish photo preview">`;}};
+$('#modelUpload').onchange=e=>{
+  if(modelPreviewUrl){URL.revokeObjectURL(modelPreviewUrl);modelPreviewUrl=null}
+  pendingModel=e.target.files?.[0]||null;
+  const item=editingId?items.find(i=>i.id===editingId):window.__newDraft;
+  if(pendingModel){
+    modelPreviewUrl=URL.createObjectURL(pendingModel);
+    setEditorModelSource(modelPreviewUrl);
+    $('#modelEmpty').classList.add('hidden');
+    $('#assetState').textContent=`Ready to upload: ${pendingModel.name}`;
+  }else{
+    setEditorModelSource(item?.model_url||'');
+    $('#modelEmpty').classList.toggle('hidden',!!item?.model_url);
+    $('#assetState').textContent=item?.model_url?'3D model stored in cloud.':'No 3D model uploaded yet.';
+  }
+};
+$('#photoUpload').onchange=e=>{
+  if(photoPreviewUrl){URL.revokeObjectURL(photoPreviewUrl);photoPreviewUrl=null}
+  pendingPhoto=e.target.files?.[0]||null;
+  const item=editingId?items.find(i=>i.id===editingId):window.__newDraft;
+  if(pendingPhoto){
+    photoPreviewUrl=URL.createObjectURL(pendingPhoto);
+    $('#photoPreview').innerHTML=`<img src="${photoPreviewUrl}" alt="Dish photo preview">`;
+  }else $('#photoPreview').innerHTML=item?.photo_url?`<img src="${item.photo_url}" alt="Dish photo preview">`:'<span>No photo</span>';
+};
 
 function applyEditorShowcaseScale(){
   const viewer=$('#editorModel');
@@ -384,6 +434,15 @@ $('#duplicateDish').onclick=async()=>{
   try{const saved=await ARAPP.saveMenuItem(copy);items.push(saved);$('#dishModal').close();renderAll();openEditor(saved.id)}catch(e){alert(e.message)}finally{btn.disabled=false;btn.textContent='Duplicate'}
 };
 $('#deleteDish').onclick=async()=>{if(!editingId)return;if(confirm('Delete this dish?')){try{await ARAPP.deleteMenuItem(editingId);items=items.filter(x=>x.id!==editingId);$('#dishModal').close();renderAll()}catch(e){alert(e.message)}}};
+
+$('#dishModal').addEventListener('close',()=>{
+  revokeDishPreviewUrls();
+  resetDishUploadInputs();
+  // Drop any unsaved new-dish draft so it can never leak into the next item.
+  if(!editingId)window.__newDraft=null;
+  setEditorModelSource('');
+  $('#modelEmpty').classList.remove('hidden');
+});
 
 function renderQR(){
   if(!currentRestaurant)return;
